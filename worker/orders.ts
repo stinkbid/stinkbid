@@ -1,9 +1,10 @@
 import { Hono } from "hono";
 import { getAddress, isAddress, isHex, recoverTypedDataAddress, type Address, type Hex } from "viem";
 import {
-  ADDR, LIMITS, MARKETS, depthOf, marketBySymbol, orderId, pathFor, permitDomain, permitMessage, permitTypes, USDG_DECIMALS,
+  ADDR, FEED_DECIMALS, LIMITS, MARKETS, SESSIONS, TRIGGERS, depthOf, marketBySymbol, oracleLevelFor, orderId, pathFor, permitDomain, permitMessage, permitTypes,
+  usMarketOpen, USDG_DECIMALS, type Session, type Trigger,
 } from "../shared/config";
-import { isDeployed, makerStates, marketQuotes, quoteMany } from "./market";
+import { isActive, isDeployed, makerStates, marketQuotes, oraclePrices, quoteMany } from "./market";
 import { overLimit } from "./ratelimit";
 import { clientIp, hashIp, originAllowed } from "./request";
 import { rhClient } from "./rh";
@@ -19,6 +20,7 @@ type Row = {
   nonce: string; deadline: number; signature: string; depth_bps: number; ref_amount_out: string; status: string;
   note: string | null; last_quote: string | null; last_checked_at: number | null; fill_tx: string | null;
   amount_out: string | null; filled_by: string | null; closed_at: number | null; created_at: number;
+  fill_on: string; oracle_level: string | null; session: string; ladder: string | null; active: number;
 };
 
 /** What a maker sees about their own order. The signature stays out: it is only needed by fillers. */
@@ -40,9 +42,21 @@ orders.get("/quote", async (c) => {
   if (!m) return c.json({ error: "unknown_market" }, 400);
   if (!(amount >= LIMITS.minUsdg && amount <= LIMITS.maxUsdg)) return c.json({ error: "amount_out_of_range" }, 400);
   const amountIn = BigInt(Math.round(amount * 10 ** USDG_DECIMALS));
-  const [out] = await quoteMany(rhClient(c.env.RPC_URL), [{ path: pathFor(m), amountIn }]);
+  const client = rhClient(c.env.RPC_URL);
+  // A 1 USDG quote next to the real size shows how far this size alone moves the pool.
+  const unit = 10n ** BigInt(USDG_DECIMALS);
+  const [[out, small], [feed]] = await Promise.all([
+    quoteMany(client, [{ path: pathFor(m), amountIn }, { path: pathFor(m), amountIn: unit }]),
+    oraclePrices(client, [m]).catch(() => [null]),
+  ]);
   if (out == null) return c.json({ error: "no_quote" }, 502);
-  return c.json({ symbol: m.symbol, amountIn: amountIn.toString(), amountOut: out.toString(), decimals: m.decimals });
+  const impactBps = small ? Math.max(0, Math.round((1 - Number((out * 1_000_000n * unit) / (small * amountIn)) / 1_000_000) * 10_000)) : null;
+  const price = Number(amountIn) / 10 ** USDG_DECIMALS / (Number(out) / 10 ** m.decimals);
+  const oracle = feed ? Number(feed.price) / 10 ** FEED_DECIMALS : null;
+  return c.json({
+    symbol: m.symbol, amountIn: amountIn.toString(), amountOut: out.toString(), decimals: m.decimals, impactBps,
+    oracle, oracleUpdatedAt: feed?.updatedAt ?? null, premiumBps: oracle ? Math.round((price / oracle - 1) * 10_000) : null, marketOpen: usMarketOpen(),
+  });
 });
 
 orders.post("/orders", async (c) => {
@@ -67,6 +81,9 @@ orders.post("/orders", async (c) => {
     return c.json({ error: "bad_order" }, 400);
   }
   const maker = getAddress(b.maker) as Address;
+  const fillOn: Trigger = TRIGGERS.includes(b.fillOn) ? b.fillOn : "pool";
+  const session: Session = SESSIONS.includes(b.session) ? b.session : "any";
+  const ladder = typeof b.ladder === "string" && /^[0-9a-f]{8,32}$/.test(b.ladder) ? b.ladder : null;
   const unit = 10n ** BigInt(USDG_DECIMALS);
   if (amountIn < BigInt(LIMITS.minUsdg) * unit || amountIn > BigInt(LIMITS.maxUsdg) * unit) return c.json({ error: "amount_out_of_range" }, 400);
   if (minAmountOut <= 0n || minAmountOut > UINT256_MAX || nonce < 0n || nonce > UINT256_MAX) return c.json({ error: "bad_order" }, 400);
@@ -87,11 +104,12 @@ orders.post("/orders", async (c) => {
   const open = await c.env.DB.prepare("SELECT COUNT(*) AS n FROM orders WHERE maker = ?1 AND status = 'open'").bind(maker).first<{ n: number }>();
   if ((open?.n ?? 0) >= LIMITS.maxOpenPerMaker) return c.json({ error: "too_many_open" }, 400);
 
-  const [deployed, [quote], [state]] = await Promise.all([
+  const [deployed, [quote], [state], [feed]] = await Promise.all([
     isDeployed(client),
     quoteMany(client, [{ path: pathFor(m), amountIn }]),
     makerStates(client, [{ maker, nonce }]),
-  ]).catch(() => [null, [null], [null]] as const);
+    oraclePrices(client, [m]),
+  ]).catch(() => [null, [null], [null], [null]] as const);
   if (deployed === null || !state) return c.json({ error: "chain_unavailable" }, 503);
   if (!deployed) return c.json({ error: "contract_not_live" }, 409);
   if (quote == null) return c.json({ error: "no_quote" }, 502);
@@ -102,12 +120,18 @@ orders.post("/orders", async (c) => {
   const depth = depthOf(quote, minAmountOut);
   if (depth < LIMITS.minDepthBps / 2 || depth > LIMITS.maxDepthBps + 500) return c.json({ error: "depth_out_of_range", detail: String(depth) }, 400);
 
+  if (fillOn === "oracle" && !feed) return c.json({ error: "no_oracle" }, 502);
+  const oracleLevel = fillOn === "oracle" ? oracleLevelFor(feed!.price, depth).toString() : null;
+  const active = isActive({ fill_on: fillOn, oracle_level: oracleLevel, session }, feed, usMarketOpen()) ? 1 : 0;
+
   const id = orderId(maker, nonce);
   const res = await c.env.DB.prepare(
-    `INSERT INTO orders (id, maker, symbol, token_out, path, amount_in, min_amount_out, nonce, deadline, signature, depth_bps, ref_amount_out, created_at)
-     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13) ON CONFLICT (id) DO NOTHING`,
+    `INSERT INTO orders (id, maker, symbol, token_out, path, amount_in, min_amount_out, nonce, deadline, signature, depth_bps, ref_amount_out, created_at,
+                         fill_on, oracle_level, session, ladder, active)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18) ON CONFLICT (id) DO NOTHING`,
   )
-    .bind(id, maker, m.symbol, m.token, pathFor(m), amountIn.toString(), minAmountOut.toString(), nonce.toString(), Number(deadline), signature, depth, quote.toString(), now())
+    .bind(id, maker, m.symbol, m.token, pathFor(m), amountIn.toString(), minAmountOut.toString(), nonce.toString(), Number(deadline), signature, depth, quote.toString(), now(),
+      fillOn, oracleLevel, session, ladder, active)
     .run();
   if (!res.meta.changes) return c.json({ error: "duplicate" }, 409);
   return c.json({ id, depthBps: depth }, 201);
@@ -120,10 +144,11 @@ orders.get("/orders", async (c) => {
   return c.json({ orders: results.map(publicView) });
 });
 
-/** Every open order with its signature, so anyone can run a filler. Filling only ever executes the signed terms. */
+/** Every open order whose conditions hold right now, with its signature, so anyone can run a filler.
+ *  Filling only ever executes the signed terms. Orders waiting on a condition stay unpublished until it holds. */
 orders.get("/orders/open", async (c) => {
   const { results } = await c.env.DB.prepare(
-    "SELECT id, maker, symbol, token_out, path, amount_in, min_amount_out, nonce, deadline, signature FROM orders WHERE status = 'open' AND deadline > ?1 ORDER BY created_at LIMIT 500",
+    "SELECT id, maker, symbol, token_out, path, amount_in, min_amount_out, nonce, deadline, signature FROM orders WHERE status = 'open' AND active = 1 AND deadline > ?1 ORDER BY created_at LIMIT 500",
   ).bind(now()).all();
   c.header("Cache-Control", "public, max-age=10");
   return c.json({ contract: ADDR.stinkbid, orders: results });

@@ -46,14 +46,14 @@ const runKeeper = async () => {
 };
 const quote = async (amount: number) => BigInt((await api(`/api/quote?symbol=NVDA&amount=${amount}`)).json.amountOut);
 
-async function place(amount: number, depthBps: number, nonce: bigint, tamper = false) {
+async function place(amount: number, depthBps: number, nonce: bigint, tamper = false, extra: Record<string, string> = {}) {
   const amountIn = parseUnits(String(amount), 6);
   const minAmountOut = minOutFor(await quote(amount), depthBps);
   const order = { maker: maker.address, tokenOut: NVDA.token, minAmountOut, amountIn, nonce, deadline: BigInt(Math.floor(Date.now() / 1000) + 86400) };
   const signature = await maker.signTypedData({ domain: permitDomain, types: permitTypes, primaryType: "PermitWitnessTransferFrom", message: permitMessage(order) });
   return api("/api/orders", {
     symbol: "NVDA", maker: maker.address, amountIn: String(amountIn), minAmountOut: String(tamper ? minAmountOut - 1n : minAmountOut),
-    nonce: String(nonce), deadline: String(order.deadline), signature,
+    nonce: String(nonce), deadline: String(order.deadline), signature, ...extra,
   });
 }
 
@@ -76,6 +76,10 @@ let mine = ((await api(`/api/orders?maker=${maker.address}`)).json.orders as { i
 const first = mine.find((o) => o.id.endsWith(`:${N(12n)}`))!;
 check(first?.status === "open", `bid waits while the market is above it (status ${first?.status}, note ${first?.note})`);
 
+// 2b. The same bid, but waiting for the official (Chainlink) price to confirm the drop: placed, not published.
+const oracleBid = await place(20, 100, N(14n), false, { fillOn: "oracle" });
+check(oracleBid.status === 201, `oracle-confirmed bid accepted (${oracleBid.status} ${JSON.stringify(oracleBid.json)})`);
+
 // 3. Someone dumps NVDA into the pool; the price falls through the bid; the keeper fills it.
 const before = await pub.readContract({ address: NVDA.token, abi: erc20Abi, functionName: "balanceOf", args: [maker.address] });
 const dump = parseUnits("600", 18);
@@ -92,6 +96,11 @@ check(filled?.status === "filled" && !!filled.fill_tx, `keeper filled the bid (s
 check(after - before >= BigInt(filled?.min_amount_out ?? 0) && after - before === BigInt(filled?.amount_out ?? -1), `maker received ${after - before} ≥ minimum ${filled?.min_amount_out}`);
 const sbUsdg = await pub.readContract({ address: ADDR.usdg, abi: erc20Abi, functionName: "balanceOf", args: [ADDR.stinkbid] });
 check(sbUsdg === 0n, "contract holds no USDG after the fill");
+
+// 3b. The dump moved only the pool, not Chainlink: the oracle bid stays open, unpublished, unfilled.
+const ob = mine.find((o) => o.id.endsWith(`:${N(14n)}`)) as unknown as { status: string; active: number } | undefined;
+const openFeed = (await api("/api/orders/open")).json.orders as { id: string }[];
+check(ob?.status === "open" && ob.active === 0 && !openFeed.some((o) => o.id.endsWith(`:${N(14n)}`)), `oracle bid waits for the official price (status ${ob?.status}, active ${ob?.active})`);
 
 // 4. A deep bid, cancelled on Permit2 by the maker, is marked cancelled and never fills.
 const deep = await place(20, 4000, N(13n));

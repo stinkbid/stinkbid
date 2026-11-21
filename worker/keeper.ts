@@ -1,16 +1,23 @@
-// The keeper: once a minute, check every open order and fill the ones the market has reached.
+// The keeper: about every 10 seconds (five passes per cron minute), check every open order and fill the ones the market has reached.
 // It can only call StinkBid.fill with an order exactly as signed; the contract checks the price on-chain.
 import { createWalletClient, decodeEventLog, getAddress, keccak256, toHex, type Address, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { ADDR, EXPLORER, STINKBID_ABI } from "../shared/config";
-import { isDeployed, makerStates, quoteMany } from "./market";
+import { ADDR, EXPLORER, STINKBID_ABI, marketBySymbol, usMarketOpen, type Market } from "../shared/config";
+import { isActive, isDeployed, makerStates, oraclePrices, quoteMany, type OraclePrice } from "./market";
 import { rhClient, robinhood, transportFor } from "./rh";
 
 const MAX_FILLS_PER_RUN = 5;
 const MIN_KEEPER_ETH = 50_000_000_000_000n; // 0.00005 ETH, a few hundred fills at today's gas price
 const MAX_FEE_PER_GAS = 1_000_000_000n; // 1 gwei; the chain has been at ~0.02 gwei
 
-type OpenRow = { id: string; maker: string; token_out: string; path: string; amount_in: string; min_amount_out: string; nonce: string; deadline: number; signature: string };
+type OpenRow = {
+  id: string; maker: string; symbol: string; token_out: string; path: string; amount_in: string; min_amount_out: string; nonce: string; deadline: number; signature: string;
+  fill_on: string; oracle_level: string | null; session: string; active: number;
+};
+
+const PASSES = 5; // passes at 0, 10, 20, 30 and 40 s, so a slow fill still ends before the next cron minute
+const PASS_EVERY_MS = 10_000;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const now = () => Math.floor(Date.now() / 1000);
 
@@ -37,26 +44,55 @@ async function findFill(maker: string, nonce: string): Promise<{ tx: string; amo
 export async function runKeeper(env: Env): Promise<void> {
   const db = env.DB;
   const started = now();
+  const t0 = Date.now();
+  const key = env.KEEPER_KEY?.trim();
+  const run = await db.prepare("INSERT INTO keeper_runs (started_at, mode) VALUES (?1, ?2) RETURNING id").bind(started, key ? "live" : "watch").first<{ id: number }>();
+  const stats = { mode: key ? "live" : "watch", block: null as number | null, checked: 0, fillable: 0, filled: 0, error: null as string | null };
+  try {
+    const passes = Math.min(PASSES, Math.max(1, Number(env.KEEPER_PASSES ?? PASSES) || PASSES));
+    for (let i = 0; i < passes; i++) {
+      await pass(env, stats);
+      if (stats.mode === "waiting_for_contract") break;
+      const next = (i + 1) * PASS_EVERY_MS - (Date.now() - t0);
+      if (i < passes - 1 && next > 0) await sleep(next);
+    }
+  } finally {
+    await db.prepare("UPDATE keeper_runs SET finished_at = ?2, mode = ?3, block = ?4, checked = ?5, fillable = ?6, filled = ?7, error = ?8 WHERE id = ?1")
+      .bind(run?.id ?? 0, now(), stats.mode, stats.block, stats.checked, stats.fillable, stats.filled, stats.error).run();
+    if (Math.random() < 0.02) await db.prepare("DELETE FROM keeper_runs WHERE started_at < ?1").bind(started - 3 * 86400).run();
+  }
+}
+
+type Stats = { mode: string; block: number | null; checked: number; fillable: number; filled: number; error: string | null };
+
+/** One check of every open order. Stats keep the latest block and error and the largest counts of the minute. */
+async function pass(env: Env, stats: Stats): Promise<void> {
+  const db = env.DB;
+  const started = now();
   const client = rhClient(env.RPC_URL);
   const key = env.KEEPER_KEY?.trim();
-  let mode = key ? "live" : "watch";
-  const run = await db.prepare("INSERT INTO keeper_runs (started_at, mode) VALUES (?1, ?2) RETURNING id").bind(started, mode).first<{ id: number }>();
-  const stats = { block: null as number | null, checked: 0, fillable: 0, filled: 0, error: null as string | null };
 
   try {
     stats.block = Number(await client.getBlockNumber());
     if (!(await isDeployed(client))) {
-      mode = "waiting_for_contract";
+      stats.mode = "waiting_for_contract";
       return;
     }
 
     await db.prepare("UPDATE orders SET status = 'expired', closed_at = ?1 WHERE status = 'open' AND deadline <= ?1").bind(started).run();
     const { results: open } = await db.prepare("SELECT * FROM orders WHERE status = 'open' ORDER BY created_at LIMIT 300").all<OpenRow>();
     if (open.length === 0) return;
-    stats.checked = open.length;
+    stats.checked = Math.max(stats.checked, open.length);
 
-    const states = await makerStates(client, open.map((o) => ({ maker: getAddress(o.maker), nonce: BigInt(o.nonce) })));
-    const quotes = await quoteMany(client, open.map((o) => ({ path: o.path as Hex, amountIn: BigInt(o.amount_in) })));
+    // Official prices only for markets that have an oracle order.
+    const oracleMarkets = [...new Set(open.filter((o) => o.fill_on === "oracle").map((o) => o.symbol))].map((sym) => marketBySymbol(sym)).filter(Boolean) as Market[];
+    const [states, quotes, feeds] = await Promise.all([
+      makerStates(client, open.map((o) => ({ maker: getAddress(o.maker), nonce: BigInt(o.nonce) }))),
+      quoteMany(client, open.map((o) => ({ path: o.path as Hex, amountIn: BigInt(o.amount_in) }))),
+      oraclePrices(client, oracleMarkets).catch(() => oracleMarkets.map(() => null)),
+    ]);
+    const feedBySymbol = new Map<string, OraclePrice>(oracleMarkets.map((m, i) => [m.symbol, feeds[i]]));
+    const marketOpen = usMarketOpen();
     const candidates: OpenRow[] = [];
     const updates: D1PreparedStatement[] = [];
 
@@ -73,14 +109,14 @@ export async function runKeeper(env: Env): Promise<void> {
         continue;
       }
       const amountIn = BigInt(o.amount_in);
+      const active = isActive(o, feedBySymbol.get(o.symbol) ?? null, marketOpen) ? 1 : 0;
       const note = s.usdg < amountIn ? "unfunded" : s.allowance < amountIn ? "no_allowance" : null;
-      updates.push(db.prepare("UPDATE orders SET note = ?2, last_quote = ?3, last_checked_at = ?4 WHERE id = ?1").bind(o.id, note, q?.toString() ?? null, started));
-      if (!note && q != null && q >= BigInt(o.min_amount_out)) candidates.push(o);
+      updates.push(db.prepare("UPDATE orders SET note = ?2, last_quote = ?3, last_checked_at = ?4, active = ?5 WHERE id = ?1").bind(o.id, note, q?.toString() ?? null, started, active));
+      if (active && !note && q != null && q >= BigInt(o.min_amount_out)) candidates.push(o);
     }
     if (updates.length) await db.batch(updates);
-    stats.fillable = candidates.length;
+    stats.fillable = Math.max(stats.fillable, candidates.length);
     if (!key || candidates.length === 0) return;
-
     const account = privateKeyToAccount((key.startsWith("0x") ? key : `0x${key}`) as Hex);
     const wallet = createWalletClient({ account, chain: robinhood, transport: transportFor(env.RPC_URL) });
     const balance = await client.getBalance({ address: account.address });
@@ -120,9 +156,5 @@ export async function runKeeper(env: Env): Promise<void> {
     }
   } catch (err) {
     stats.error = String((err as { shortMessage?: string })?.shortMessage ?? err).slice(0, 300);
-  } finally {
-    await db.prepare("UPDATE keeper_runs SET finished_at = ?2, mode = ?3, block = ?4, checked = ?5, fillable = ?6, filled = ?7, error = ?8 WHERE id = ?1")
-      .bind(run?.id ?? 0, now(), mode, stats.block, stats.checked, stats.fillable, stats.filled, stats.error).run();
-    if (Math.random() < 0.02) await db.prepare("DELETE FROM keeper_runs WHERE started_at < ?1").bind(started - 3 * 86400).run();
   }
 }

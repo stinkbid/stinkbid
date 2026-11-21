@@ -14,4 +14,4 @@ until cast block-number -r http://127.0.0.1:8545 >/dev/null 2>&1; do sleep 1; do
 (cd contracts && forge script script/Deploy.s.sol --rpc-url http://127.0.0.1:8545 --broadcast --legacy \
   --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 >/dev/null)
 npx wrangler d1 execute stinkbid --local --command "DELETE FROM orders; DELETE FROM keeper_runs;" >/dev/null 2>&1
-node scripts/e2e-fork.ts
+npx tsx scripts/e2e-fork.ts
