@@ -43,10 +43,11 @@ export const ERRORS: Record<string, string> = {
   no_quote: "The pool didn't return a price. Try again in a moment.",
   nonce_used: "That order was already used. Sign a new one.",
   not_enough_usdg: "Not enough USDG in this wallet for that size.",
-  no_allowance: "The Permit2 approval is lower than this order. Approve again.",
+  no_allowance: "The Permit2 approval is lower than this order. Press the button again to approve the full amount.",
   depth_out_of_range: "The price moved while you signed. Sign again.",
   duplicate: "That order is already placed.",
   approve_failed: "The approval transaction failed. Nothing was signed.",
+  approval_too_low: "Your wallet approved less USDG than this order needs. Press the button again and keep the amount your wallet suggests.",
   no_wallet: "No browser wallet found. Install Rabby or MetaMask, or open this page in your wallet app's browser.",
 };
 

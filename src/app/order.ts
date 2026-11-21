@@ -184,11 +184,13 @@ async function ensureAllowance(amount: bigint) {
   const openSum = state.bids.filter((b) => b.status === "open").reduce((s, b) => s + BigInt(b.amount_in), 0n);
   const need = openSum + amount;
   if (allowance >= need) return;
-  say(`Approve ${formatUnits(need, USDG_DECIMALS)} USDG for Permit2 in your wallet…`);
+  say(`Approve ${formatUnits(need, USDG_DECIMALS)} USDG for Permit2 in your wallet. Keep the amount your wallet shows; a lower cap blocks the order.`);
   const hash = await wal().writeContract({ address: ADDR.usdg, abi: erc20Abi, functionName: "approve", args: [ADDR.permit2, need] });
   say("Waiting for the approval to confirm…");
   const r = await client.waitForTransactionReceipt({ hash });
-  if (r.status !== "success") throw new Error("approve_failed");
+  if (r.status !== "success") throw Object.assign(new Error("approve_failed"), { code: "approve_failed" });
+  const after = await client.readContract({ address: ADDR.usdg, abi: erc20Abi, functionName: "allowance", args: [owner, ADDR.permit2] });
+  if (after < need) throw Object.assign(new Error("approval_too_low"), { code: "approval_too_low" });
 }
 
 function randomNonce(): bigint {
