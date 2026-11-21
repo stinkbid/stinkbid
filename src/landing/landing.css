@@ -1,5 +1,6 @@
 @import "@fontsource-variable/archivo/wdth.css";
 @import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource-variable/schibsted-grotesk/wght.css";
 
 /* Direction v4 (owner, 21 Nov 2026): "The Catch", more futuristic, images dissolve into the page.
    Design read: product teaser for crypto traders, cinematic dark language, dial ENERGY 3 / RHYTHM 3 / MOTION 2.
@@ -16,7 +17,9 @@
   --hair: rgba(237, 230, 223, 0.16);
   --hair-strong: rgba(237, 230, 223, 0.38);
   --sans: "Archivo Variable", "Helvetica Neue", Arial, sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  /* Small text: Schibsted Grotesk, a newspaper grotesk; prices and labels read like a financial page. Plex Mono stays for code only. */
+  --mono: "Schibsted Grotesk Variable", "Helvetica Neue", Arial, sans-serif;
+  --code: "IBM Plex Mono", ui-monospace, monospace;
   --gutter: max(16px, 5vw);
 }
 
@@ -24,7 +27,7 @@
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 html { background: var(--void); }
 body { margin: 0; color: var(--bone); }
-body { font-family: var(--sans); font-size: 17px; line-height: 1.6; overflow-x: hidden; }
+body { font-variant-numeric: tabular-nums; font-family: var(--sans); font-size: 17px; line-height: 1.6; overflow-x: hidden; }
 body::after { content: ""; position: fixed; inset: 0; z-index: 50; pointer-events: none; opacity: 0.07; mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 img, svg { display: block; max-width: 100%; }
@@ -41,13 +44,13 @@ button:disabled { cursor: not-allowed; }
 .skip { position: absolute; left: 8px; top: -60px; z-index: 60; background: var(--bone); color: var(--void); padding: 10px 14px; }
 .skip:focus { top: 8px; }
 
-.kicker { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 13px; letter-spacing: 0.04em; color: var(--bone-soft); }
+.kicker { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--bone-soft); }
 .tick { width: 28px; height: 2px; background: var(--red); flex: none; }
 
-/* Buttons: square, hairline, one filled (red = the bid). */
-.btn, .btn-line { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 24px; text-decoration: none; font: 600 16px var(--sans); border: 1px solid transparent; transition: background 0.2s, color 0.2s, border-color 0.2s; }
+/* Buttons: pills, hairline, one filled (red = the bid). */
+.btn, .btn-line { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 20px; border-radius: 999px; text-decoration: none; font: 600 15px var(--mono); border: 1px solid transparent; transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s; }
 .btn { background: var(--red); color: var(--void); }
-.btn:hover:not(:disabled) { background: var(--bone); }
+.btn:hover:not(:disabled) { background: #ff5a3f; box-shadow: 0 0 24px rgba(255, 59, 31, 0.35); }
 .btn-line { background: transparent; color: var(--bone); border-color: var(--hair-strong); }
 .btn-line:hover:not(:disabled) { border-color: var(--bone); }
 .btn:active:not(:disabled), .btn-line:active:not(:disabled) { transform: translateY(1px); }
@@ -58,11 +61,16 @@ button:disabled { cursor: not-allowed; }
 .top.is-scrolled { background: rgba(11, 7, 8, 0.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom-color: var(--hair); }
 .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; text-decoration: none; font-stretch: 125%; font-weight: 700; font-size: 17px; letter-spacing: 0.08em; }
 .top nav { display: flex; align-items: center; gap: 6px; }
-.top-link, .top-cta { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; text-decoration: none; font-size: 15px; font-weight: 500; }
+.top-link, .top-cta { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 999px; text-decoration: none; font: 500 14.5px var(--mono); }
 .top-link { color: var(--bone-soft); }
-.top-link:hover { color: var(--bone); }
-.top-cta { border: 1px solid var(--hair-strong); }
-.top-cta:hover { background: var(--bone); color: var(--void); }
+.top-link:hover { color: var(--bone); background: rgba(237, 230, 223, 0.06); }
+.top-cta { margin-left: 6px; padding: 0 18px; background: var(--red); color: var(--void); font-weight: 600; }
+.top-cta:hover { background: #ff5a3f; box-shadow: 0 0 24px rgba(255, 59, 31, 0.35); }
+/* X and GitHub marks, header and footer */
+.soc { display: inline-flex; align-items: center; gap: 2px; }
+.soc-a { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 999px; color: var(--bone-soft); transition: color 0.2s, background 0.2s; }
+.soc-a:hover { color: var(--bone); background: rgba(237, 230, 223, 0.08); }
+.soc-a:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 
 /* Backdrop: the empty hall, fixed, dimmed, with a vignette and a faint bid-red light that follows the pointer. */
 .backdrop { position: fixed; inset: 0; z-index: -10; pointer-events: none; overflow: hidden; }
@@ -122,14 +130,14 @@ h2 { font-size: clamp(36px, 5.4vw, 84px); }
 .chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
 .chips label { position: relative; }
 .chips input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
-.chips span { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border: 1px solid var(--hair-strong); font-family: var(--mono); font-size: 14px; transition: background 0.2s, color 0.2s, border-color 0.2s; }
+.chips span { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--hair-strong); font-family: var(--mono); font-size: 14px; font-weight: 500; transition: background 0.2s, color 0.2s, border-color 0.2s; }
 .chips label:hover span { border-color: var(--bone); }
 .chips input:checked + span { background: var(--bone); color: var(--void); border-color: var(--bone); }
 .chips input:focus-visible + span { outline: 2px solid var(--red); outline-offset: 3px; }
 .run-row { display: flex; gap: 10px; flex-wrap: wrap; }
 .result { min-height: 3.2em; padding: 14px 0 0; border-top: 1px solid var(--hair); color: var(--bone); font-size: 16px; }
-.result.is-filled::before { content: "FILLED  "; color: var(--red); font-family: var(--mono); font-size: 13px; }
-.result.is-missed::before { content: "STILL WAITING  "; color: var(--bone-soft); font-family: var(--mono); font-size: 13px; }
+.result.is-filled::before { content: "Filled · "; color: var(--red); font-family: var(--mono); font-size: 13px; }
+.result.is-missed::before { content: "Still waiting · "; color: var(--bone-soft); font-family: var(--mono); font-size: 13px; }
 
 .stage { position: relative; min-height: 560px; overflow: hidden; background:
   radial-gradient(60% 40% at 50% var(--glow-y, 40%), rgba(255, 59, 31, 0.16), transparent 70%),
@@ -215,7 +223,8 @@ h2 { font-size: clamp(36px, 5.4vw, 84px); }
 @media (max-width: 700px) {
   body { font-size: 16px; }
   .top-link { display: none; }
-  .top-cta { padding: 0 12px; font-size: 14px; }
+  .top-cta { padding: 0 14px; font-size: 14px; }
+  .top .soc-a { width: 36px; height: 36px; }
   .brand span { font-size: 15px; }
   .hero { display: block; min-height: 0; }
   .hero-bg { position: relative; z-index: 0; }
@@ -243,9 +252,14 @@ h2 { font-size: clamp(36px, 5.4vw, 84px); }
 .foot-links a { color: var(--bone-soft); text-decoration: none; min-height: 32px; display: inline-flex; align-items: center; }
 .foot-links a:hover { color: var(--bone); }
 .foot p { flex-basis: 100%; font-size: 13px; }
+.foot .soc { margin-left: auto; }
+@media (max-width: 700px) { .foot .soc { margin-left: -10px; } }
 .top-link[aria-current="page"] { color: var(--bone); }
 @media (max-width: 700px) {
   .inner .top-link { display: inline-flex; padding: 0 10px; font-size: 14px; }
+}
+@media (max-width: 560px) {
+  .inner .top-link { display: none; }
 }
 
 /* The book: live open bids and fills from /api/book */
@@ -258,7 +272,7 @@ h2 { font-size: clamp(36px, 5.4vw, 84px); }
 .book-totals dt { font-family: var(--mono); font-size: 12px; color: var(--bone-soft); }
 .book-totals dd { margin: 8px 0 0; font-stretch: 125%; font-weight: 700; font-size: clamp(26px, 3vw, 42px); line-height: 1; }
 .book-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-top: 40px; }
-.book-grid h3 { font-size: 15px; font-family: var(--mono); font-weight: 400; letter-spacing: 0.04em; color: var(--bone-soft); }
+.book-grid h3 { font-size: 15px; font-family: var(--mono); font-weight: 500; color: var(--bone-soft); }
 .book-list { list-style: none; margin: 12px 0 0; padding: 0; }
 .book-list li { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-top: 1px solid var(--hair); font-size: 15px; }
 .book-list li span:last-child { font-family: var(--mono); color: var(--bone-soft); text-align: right; }
