@@ -4,7 +4,7 @@ import "./order.css";
 import "../pages/chrome";
 import { createPublicClient, createWalletClient, custom, defineChain, erc20Abi, formatUnits, getAddress, parseUnits, type Address, type Hex } from "viem";
 import {
-  ADDR, CHAIN_ID, EXPLORER, LIMITS, PERMIT2_ABI, RPCS, USDG_DECIMALS, marketBySymbol, minOutFor, nonceWord, permitDomain, permitMessage, permitTypes, type Market,
+  ADDR, CHAIN_ID, EXPLORER, LIMITS, PERMIT2_ABI, RPCS, USDG_DECIMALS, marketBySymbol, minOutFor, nonceWord, permitDomain, permitMessage, permitTypes, usMarketOpen, type Market,
 } from "../../shared/config";
 import { errorText, get, post } from "./api";
 import { explorerTx, short } from "../pages/chrome";
@@ -19,10 +19,12 @@ const chain = defineChain({
   blockExplorers: { default: { name: "Blockscout", url: EXPLORER } },
 });
 
-type MarketQuote = Market & { quoteIn: string; quoteOut: string | null; price: number | null };
+type MarketQuote = Market & { quoteIn: string; quoteOut: string | null; price: number | null; oracle: number | null; premiumBps: number | null };
+type Quote = { amountOut: string; impactBps: number | null; oracle: number | null; oracleUpdatedAt: number | null; premiumBps: number | null; marketOpen: boolean };
 type Bid = {
   id: string; symbol: string; amount_in: string; min_amount_out: string; nonce: string; deadline: number; depth_bps: number;
   status: "open" | "filled" | "cancelled" | "expired"; note: string | null; fill_tx: string | null; amount_out: string | null; created_at: number;
+  fill_on: string; session: string; ladder: string | null; active: number;
 };
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -41,6 +43,7 @@ const state = {
   wallet: null as Wallet | null,
   account: null as Address | null,
   quoteOut: null as bigint | null,
+  quote: null as Quote | null,
   bids: [] as Bid[],
   busy: false,
 };
@@ -48,6 +51,19 @@ const state = {
 const usd = (n: number) => (n >= 1000 ? n.toLocaleString("en-US", { maximumFractionDigits: 0 }) : n.toLocaleString("en-US", { maximumFractionDigits: 2, minimumFractionDigits: 2 }));
 const tokens = (v: bigint, d: number) => Number(formatUnits(v, d)).toLocaleString("en-US", { maximumSignificantDigits: 5 });
 const days = () => Number(document.querySelector<HTMLInputElement>('input[name="days"]:checked')?.value ?? 7);
+const pick = (name: string, fallback: string) => document.querySelector<HTMLInputElement>(`input[name="${name}"]:checked`)?.value ?? fallback;
+const rungCount = () => Number(pick("rungs", "1"));
+const fillOn = () => pick("fillon", "pool") as "pool" | "oracle";
+const session = () => pick("session", "any") as "any" | "closed";
+
+/** A ladder of n bids: the size split evenly (remainder on the deepest), at depth, 2×depth, … capped at the beta maximum. */
+function rungsFor(size: bigint, depth: number, n: number) {
+  const each = size / BigInt(n);
+  return Array.from({ length: n }, (_, i) => ({
+    amountIn: i === n - 1 ? size - each * BigInt(n - 1) : each,
+    depth: Math.min(depth * (i + 1), LIMITS.maxDepthBps / 100),
+  }));
+}
 const market = () => marketBySymbol(marketSel.value)!;
 const sizeUnits = () => {
   const n = Number(sizeIn.value);
@@ -95,8 +111,9 @@ async function refreshQuote() {
     return;
   }
   const seq = ++quoteSeq;
-  const r = await get<{ amountOut: string }>(`/api/quote?symbol=${m.symbol}&amount=${amount}`);
+  const r = await get<Quote>(`/api/quote?symbol=${m.symbol}&amount=${amount}`);
   if (seq !== quoteSeq) return;
+  state.quote = r.ok ? r.data : null;
   state.quoteOut = r.ok ? BigInt(r.data.amountOut) : null;
   render();
 }
@@ -104,24 +121,46 @@ async function refreshQuote() {
 function render() {
   const m = market();
   const depth = Number(depthIn.value);
-  depthOut.textContent = `−${depth}%`;
+  const n = rungCount();
+  depthOut.textContent = n > 1 ? `−${depth}% to −${Math.min(depth * n, LIMITS.maxDepthBps / 100)}%` : `−${depth}%`;
   const size = sizeUnits();
-  if (size && state.quoteOut) {
-    const min = minOutFor(state.quoteOut, depth * 100);
-    const level = Number(formatUnits(size, USDG_DECIMALS)) / Number(formatUnits(min, m.decimals));
+  const q = state.quote;
+  const rungsOk = !!size && size / BigInt(n) >= BigInt(LIMITS.minUsdg) * 10n ** BigInt(USDG_DECIMALS);
+
+  $("rungs-help").textContent = n === 1 ? "The whole size at one level." : `${n} bids of about ${size ? usd(Number(formatUnits(size / BigInt(n), USDG_DECIMALS))) : "–"} USDG each, one under the other. Each one is signed separately.`;
+  $("fillon-help").textContent = fillOn() === "pool"
+    ? "Fills as soon as the Uniswap pool pays your price."
+    : "Waits until Chainlink's price for the stock has also fallen this far, so a dip that only happens in the pool doesn't fill it.";
+  const open = q?.marketOpen ?? usMarketOpen();
+  $("session-help").textContent = session() === "any"
+    ? `US market is ${open ? "open" : "closed"} right now.`
+    : `Waits while the US market is open (9:30 to 16:00 New York time, weekdays). It is ${open ? "open now, so this bid starts paused" : "closed now, so this bid is active"}.`;
+
+  if (size && state.quoteOut && rungsOk) {
+    const rungs = rungsFor(size, depth, n);
+    const mins = rungs.map((r) => minOutFor((state.quoteOut! * r.amountIn) / size, r.depth * 100));
+    const totalMin = mins.reduce((a, b) => a + b, 0n);
+    const levels = rungs.map((r, i) => Number(formatUnits(r.amountIn, USDG_DECIMALS)) / Number(formatUnits(mins[i], m.decimals)));
     const now = Number(formatUnits(size, USDG_DECIMALS)) / Number(formatUnits(state.quoteOut, m.decimals));
-    $("r-bid").textContent = `${formatUnits(size, USDG_DECIMALS)} USDG on ${m.symbol}`;
-    $("r-min").textContent = `${tokens(min, m.decimals)} ${m.symbol}`;
-    $("r-level").textContent = `${usd(level)} USDG (now ${usd(now)})`;
+    $("r-bid").textContent = n === 1 ? `${formatUnits(size, USDG_DECIMALS)} USDG on ${m.symbol}` : `${n} × ${usd(Number(formatUnits(rungs[0].amountIn, USDG_DECIMALS)))} USDG on ${m.symbol}`;
+    $("r-min").textContent = `${tokens(totalMin, m.decimals)} ${m.symbol}${n > 1 ? " if all fill" : ""}`;
+    $("r-level").textContent = n === 1 ? `${usd(levels[0])} USDG (now ${usd(now)})` : `${levels.map(usd).join(" · ")} (now ${usd(now)})`;
   } else {
     for (const id of ["r-bid", "r-min", "r-level"]) $(id).textContent = "–";
   }
+  $("r-oracle").textContent = q?.oracle ? `${usd(q.oracle)} USD${q.premiumBps != null ? ` · pool ${q.premiumBps >= 0 ? "+" : "−"}${(Math.abs(q.premiumBps) / 100).toFixed(2)}%` : ""}` : "–";
+  $("r-impact").textContent = q?.impactBps != null ? (q.impactBps < 1 ? "under 0.01%" : `${(q.impactBps / 100).toFixed(2)}%`) : "–";
+  const warn = $("impact-warn");
+  warn.hidden = !(q?.impactBps != null && q.impactBps >= 100);
+  if (!warn.hidden) warn.textContent = `This pool is thin: your size alone moves the price ${(q!.impactBps! / 100).toFixed(1)}%. A smaller size or a ladder fills closer to your level.`;
+
   if (!state.busy) {
     action.disabled = false;
     if (!state.account) action.textContent = "Connect wallet";
     else if (!state.deployed) { action.textContent = "Signing opens when the contract is live"; action.disabled = true; }
     else if (!size) { action.textContent = `Enter ${LIMITS.minUsdg} to ${LIMITS.maxUsdg} USDG`; action.disabled = true; }
-    else action.textContent = "Sign the stink bid";
+    else if (!rungsOk) { action.textContent = `At least ${LIMITS.minUsdg * n} USDG for ${n} bids`; action.disabled = true; }
+    else action.textContent = n === 1 ? "Sign the stink bid" : `Sign ${n} stink bids`;
   }
 }
 
@@ -200,27 +239,33 @@ function randomNonce(): bigint {
 
 async function signBid() {
   const m = market();
-  const amountIn = sizeUnits()!;
+  const size = sizeUnits()!;
+  const n = rungCount();
+  const rungs = rungsFor(size, Number(depthIn.value), n);
+  const ladder = n > 1 ? [...crypto.getRandomValues(new Uint8Array(8))].map((x) => x.toString(16).padStart(2, "0")).join("") : undefined;
   await ensureChain();
-  await ensureAllowance(amountIn);
-  const q = await get<{ amountOut: string }>(`/api/quote?symbol=${m.symbol}&amount=${formatUnits(amountIn, USDG_DECIMALS)}`);
-  if (!q.ok) throw Object.assign(new Error(q.error), { code: q.error });
-  const minAmountOut = minOutFor(BigInt(q.data.amountOut), Number(depthIn.value) * 100);
-  const order = {
-    maker: state.account!,
-    tokenOut: m.token,
-    minAmountOut,
-    amountIn,
-    nonce: randomNonce(),
-    deadline: BigInt(Math.floor(Date.now() / 1000) + days() * 86400),
-  };
-  say("Sign the order in your wallet. This is a signature, not a transaction.");
-  const signature: Hex = await wal().signTypedData({ domain: permitDomain, types: permitTypes, primaryType: "PermitWitnessTransferFrom", message: permitMessage(order) });
-  const r = await post<{ id: string }>("/api/orders", {
-    symbol: m.symbol, maker: order.maker, amountIn: String(amountIn), minAmountOut: String(minAmountOut), nonce: String(order.nonce), deadline: String(order.deadline), signature,
-  });
-  if (!r.ok) throw Object.assign(new Error(r.error), { code: r.error });
-  say(`Placed: ${formatUnits(amountIn, USDG_DECIMALS)} USDG on ${m.symbol}, −${depthIn.value}%. The keeper checks it every minute.`, "ok");
+  await ensureAllowance(size);
+  const deadline = BigInt(Math.floor(Date.now() / 1000) + days() * 86400);
+  let placed = 0;
+  for (const [i, rung] of rungs.entries()) {
+    const q = await get<{ amountOut: string }>(`/api/quote?symbol=${m.symbol}&amount=${formatUnits(rung.amountIn, USDG_DECIMALS)}`);
+    if (!q.ok) throw Object.assign(new Error(q.error), { code: q.error });
+    const minAmountOut = minOutFor(BigInt(q.data.amountOut), rung.depth * 100);
+    const order = { maker: state.account!, tokenOut: m.token, minAmountOut, amountIn: rung.amountIn, nonce: randomNonce(), deadline };
+    say(n === 1 ? "Sign the order in your wallet. This is a signature, not a transaction." : `Sign bid ${i + 1} of ${n} (−${rung.depth}%) in your wallet. Signatures only, no transactions.`);
+    const signature: Hex = await wal().signTypedData({ domain: permitDomain, types: permitTypes, primaryType: "PermitWitnessTransferFrom", message: permitMessage(order) });
+    const r = await post<{ id: string }>("/api/orders", {
+      symbol: m.symbol, maker: order.maker, amountIn: String(order.amountIn), minAmountOut: String(minAmountOut), nonce: String(order.nonce), deadline: String(deadline), signature,
+      fillOn: fillOn(), session: session(), ladder,
+    });
+    if (!r.ok) {
+      if (placed) await loadBids();
+      throw Object.assign(new Error(r.error), { code: r.error });
+    }
+    placed++;
+  }
+  const what = n === 1 ? `${formatUnits(size, USDG_DECIMALS)} USDG on ${m.symbol}, −${depthIn.value}%` : `${n} bids on ${m.symbol}, −${rungs[0].depth}% to −${rungs[n - 1].depth}%`;
+  say(`Placed: ${what}. The keeper checks about every 10 seconds.`, "ok");
   await loadBids();
 }
 
@@ -232,6 +277,13 @@ async function cancelBid(b: Bid) {
   await pub().waitForTransactionReceipt({ hash });
   say("Cancelled. The signature can no longer be used by anyone.", "ok");
   setTimeout(loadBids, 70_000);
+}
+
+/** The conditions of an open bid, and whether they hold right now. */
+function cond(b: Bid) {
+  const parts = [b.fill_on === "oracle" ? "official price confirms" : "", b.session === "closed" ? "US market closed only" : ""].filter(Boolean);
+  if (b.status !== "open" || parts.length === 0) return "";
+  return ` · ${parts.join(", ")} · ${b.active ? "active" : "waiting"}`;
 }
 
 async function loadBids() {
@@ -251,7 +303,7 @@ async function loadBids() {
     const note = b.status === "open" && b.note ? ` · ${b.note === "unfunded" ? "not enough USDG in the wallet" : b.note === "no_allowance" ? "Permit2 approval too low" : "last fill attempt failed, retrying"}` : "";
     li.innerHTML = `
       <span class="bid-main">${formatUnits(BigInt(b.amount_in), USDG_DECIMALS)} USDG · ${b.symbol} · −${(b.depth_bps / 100).toFixed(0)}%</span>
-      <span class="bid-sub">${got}${b.status === "open" ? ` · until ${ends}` : ""}${note}</span>
+      <span class="bid-sub">${got}${b.status === "open" ? ` · until ${ends}` : ""}${cond(b)}${note}</span>
       <span class="bid-side"><span class="pill ${b.status}">${b.status}</span></span>`;
     const side = li.querySelector(".bid-side")!;
     if (b.fill_tx) {
@@ -297,6 +349,7 @@ sizeIn.addEventListener("input", () => {
   t = window.setTimeout(refreshQuote, 350);
 });
 depthIn.addEventListener("input", render);
+document.querySelectorAll<HTMLInputElement>('input[name="rungs"], input[name="fillon"], input[name="session"]').forEach((el) => el.addEventListener("change", render));
 setInterval(refreshQuote, 30_000);
 setInterval(loadBids, 60_000);
 loadMarkets();

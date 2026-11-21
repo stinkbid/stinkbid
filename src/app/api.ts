@@ -41,6 +41,7 @@ export const ERRORS: Record<string, string> = {
   too_many_open: "This wallet already has 10 open bids. Cancel one first.",
   contract_not_live: "The contract isn't deployed yet.",
   no_quote: "The pool didn't return a price. Try again in a moment.",
+  no_oracle: "The official price feed didn't answer. Try again, or fill on the pool price.",
   nonce_used: "That order was already used. Sign a new one.",
   not_enough_usdg: "Not enough USDG in this wallet for that size.",
   no_allowance: "The Permit2 approval is lower than this order. Press the button again to approve the full amount.",

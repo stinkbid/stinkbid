@@ -31,6 +31,34 @@
             </div>
 
             <fieldset class="slip-row">
+              <legend class="ctl-k">Bids</legend>
+              <div class="chips">
+                <label><input type="radio" name="rungs" value="1" checked /> <span>One bid</span></label>
+                <label><input type="radio" name="rungs" value="3" /> <span>Ladder of 3</span></label>
+                <label><input type="radio" name="rungs" value="5" /> <span>Ladder of 5</span></label>
+              </div>
+              <p class="slip-help" id="rungs-help">The whole size at one level.</p>
+            </fieldset>
+
+            <fieldset class="slip-row">
+              <legend class="ctl-k">Fill when</legend>
+              <div class="chips">
+                <label><input type="radio" name="fillon" value="pool" checked /> <span>The pool reaches it</span></label>
+                <label><input type="radio" name="fillon" value="oracle" /> <span>The official price confirms</span></label>
+              </div>
+              <p class="slip-help" id="fillon-help">Fills as soon as the Uniswap pool pays your price.</p>
+            </fieldset>
+
+            <fieldset class="slip-row">
+              <legend class="ctl-k">Active</legend>
+              <div class="chips">
+                <label><input type="radio" name="session" value="any" checked /> <span>Any time</span></label>
+                <label><input type="radio" name="session" value="closed" /> <span>Only while US markets are closed</span></label>
+              </div>
+              <p class="slip-help" id="session-help"></p>
+            </fieldset>
+
+            <fieldset class="slip-row">
               <legend class="ctl-k">Expires in</legend>
               <div class="chips">
                 <label><input type="radio" name="days" value="1" /> <span>1 day</span></label>
@@ -43,7 +71,10 @@
               <div><dt>Your bid</dt><dd id="r-bid">–</dd></div>
               <div><dt>You get at least</dt><dd id="r-min">–</dd></div>
               <div><dt>Fills when the price is at or under</dt><dd id="r-level">–</dd></div>
+              <div><dt>Official price (Chainlink)</dt><dd id="r-oracle">–</dd></div>
+              <div><dt>Your size moves the pool</dt><dd id="r-impact">–</dd></div>
             </dl>
+            <p class="slip-help warn" id="impact-warn" hidden></p>
 
             <div class="slip-actions">
               <button type="button" class="btn" id="action">Connect wallet</button>

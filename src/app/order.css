@@ -30,6 +30,7 @@ input[type="range"] { width: 100%; accent-color: var(--red); min-height: 32px; }
 .slip-status.err { color: #ff8a73; }
 .slip-status.ok { color: var(--bone); }
 .slip-fine { font-size: 13px; color: var(--bone-soft); }
+.slip-help.warn { color: #f2b33d; }
 
 .mine { padding: 24px 24px 12px; }
 .mine-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
