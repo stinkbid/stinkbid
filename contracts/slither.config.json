@@ -1,0 +1,5 @@
+{
+  "filter_paths": "lib|test|script",
+  "detectors_to_exclude": "reentrancy-balance,unused-return,missing-zero-check,naming-convention",
+  "fail_on": "low"
+}

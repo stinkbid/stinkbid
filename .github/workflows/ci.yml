@@ -25,6 +25,21 @@ jobs:
         env:
           FORK_RPC: https://robinhood.drpc.org
 
+  slither:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install slither-analyzer==0.11.6
+      - name: Slither (see contracts/ANALYSIS.md)
+        working-directory: contracts
+        run: slither . --config-file slither.config.json
+
   site:
     runs-on: ubuntu-latest
     steps:

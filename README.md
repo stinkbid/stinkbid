@@ -45,7 +45,7 @@ FORK_RPC=https://robinhood.drpc.org forge test --match-contract Fork
 | Fork (2) | real Permit2, USDG, SwapRouter02 and the NVDA/USDG pool: a bid at the market fills, a −15% bid waits |
 | End to end (`npm run test:e2e`) | a local fork running the real site API and keeper: forged order rejected → bid placed → market falls → keeper fills → maker paid at least the minimum → cancel → spent nonce refused |
 
-Coverage of `StinkBid.sol`: 96% of lines. A fill on the NVDA pool costs about 296k gas.
+Coverage of `StinkBid.sol`: 96% of lines. Slither runs in CI; [contracts/ANALYSIS.md](contracts/ANALYSIS.md) explains each excluded detector. A fill on the NVDA pool costs about 296k gas.
 
 ## Layout
 
