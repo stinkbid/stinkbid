@@ -19,7 +19,7 @@ Anyone can call `fill`. Open orders, signatures included, are public at `GET /ap
 
 | | Address |
 |---|---|
-| StinkBid | `0x362917b506695C2096e361Fc032D4315f2439760` (CREATE2, salt `keccak256("stinkbid.v1")`) |
+| StinkBid | [`0x362917b506695C2096e361Fc032D4315f2439760`](https://robinhoodchain.blockscout.com/address/0x362917b506695C2096e361Fc032D4315f2439760) · source [verified on Sourcify](https://repo.sourcify.dev/4663/0x362917b506695C2096e361Fc032D4315f2439760) (exact match) · deployed in block 119,855,305 via CREATE2, salt `keccak256("stinkbid.v1")` |
 | Permit2 | `0x000000000022D473030F116dDEE9F6B43aC78BA3` |
 | USDG | `0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168` |
 | SwapRouter02 | `0xCaf681a66D020601342297493863E78C959E5cb2` |
@@ -80,7 +80,7 @@ forge script script/Deploy.s.sol --rpc-url robinhood                            
 forge script script/Deploy.s.sol --rpc-url robinhood --account <keystore> --broadcast
 ```
 
-The address depends only on the bytecode and the salt, so anyone who rebuilds this commit gets the same one.
+The address depends only on the bytecode and the salt, so anyone who rebuilds this commit gets the same one. Foundry compiles `StinkBid.sol` with the via-IR profile (solc 0.8.28, 1,000,000 runs, cancun) because it imports Permit2's interface; that is the build on-chain and on Sourcify.
 
 ## Security
 

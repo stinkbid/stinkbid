@@ -5,6 +5,8 @@
   "contracts": {
     "StinkBid": "0x362917b506695C2096e361Fc032D4315f2439760"
   },
+  "deployTx": "0x690a9871e316bff9b0900c0a9d07b0328d827e3ccd8e2b9b32b057f70deba381",
+  "sourceVerified": "https://repo.sourcify.dev/4663/0x362917b506695C2096e361Fc032D4315f2439760",
   "token": null,
   "x": null,
   "source": null,
