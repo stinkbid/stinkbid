@@ -10,6 +10,21 @@ StinkBid has **not been audited**. During the beta the API caps orders at 100 US
 - The contract ends every transaction holding no tokens.
 - There is no owner, admin, proxy, pause or fee.
 
+## What the keeper key can and cannot do
+
+The keeper is a Cloudflare Worker that sends `fill` transactions from `0x3A61431c290371527f844B71a9C5133c94D0D312`. Its key holds only ETH for gas.
+
+- It cannot move USDG on its own. `fill` needs a maker's signature, and Permit2 checks it.
+- It cannot change an order. The amount, token, minimum and deadline are all signed.
+- It cannot fill below a maker's minimum. The contract measures what the maker received and reverts otherwise.
+- It has no special role on-chain. Anyone can call `fill`, and open orders with their signatures are public at `GET /api/orders/open`.
+
+If the key leaked, the worst case is that someone fills open orders at prices their makers already signed for, or stops filling them. A maker who wants out cancels: the order page revokes the Permit2 nonce on-chain, and that signature stops working for everyone.
+
+## Tokens
+
+The contract does not trust the amount a token or the router says was sent. It measures the change in the maker's balance, so a token that charges a fee on transfer cannot pay the maker less than the minimum. `test_fill_feeOnTransferOutput_measuredAtMaker` checks this.
+
 ## Known risks
 
 - A filler chooses when to fill and the route. If the market falls through a bid, a filler can route or sandwich the swap so the maker gets close to the minimum instead of more.

@@ -15,7 +15,7 @@ Site: https://stinkbid.pro · App: https://stinkbid.pro/app · Docs: https://sti
 3. A keeper, a Cloudflare Worker that runs every minute, quotes each open order on Uniswap v3. When the quote reaches `minAmountOut`, it calls `StinkBid.fill`.
 4. `fill` pulls the USDG through Permit2 and swaps it on SwapRouter02 straight to the maker. It then measures the maker's balance change and reverts if that change is under `minAmountOut`.
 
-Anyone can call `fill`. Open orders, signatures included, are public at `GET /api/orders/open`, so the keeper is a convenience, not a gatekeeper.
+Anyone can call `fill`. Open orders, signatures included, are public at `GET /api/orders/open`, so the keeper is a convenience, not a gatekeeper. The keeper's key holds only gas money and cannot spend USDG or fill below a signed minimum; [SECURITY.md](SECURITY.md#what-the-keeper-key-can-and-cannot-do) lists what it can do.
 
 ## Contracts (Robinhood Chain, 4663)
 
