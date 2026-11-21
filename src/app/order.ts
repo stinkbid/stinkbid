@@ -8,7 +8,8 @@ import {
 } from "../../shared/config";
 import { errorText, get, post } from "./api";
 import { explorerTx, short } from "../pages/chrome";
-import { discoverWallets, requestAccount, WalletError, type Wallet } from "./wallet";
+import { requestAccount, type Wallet, WalletError } from "./wallet";
+import { pickWallet } from "./picker";
 
 const chain = defineChain({
   id: CHAIN_ID,
@@ -125,13 +126,34 @@ function render() {
 }
 
 async function connect() {
-  const wallets = await discoverWallets();
-  if (wallets.length === 0) throw new WalletError("wallet_error");
-  state.wallet = wallets[0];
-  state.account = getAddress(await requestAccount(state.wallet));
-  $("who").textContent = short(state.account);
+  const wallet = await pickWallet();
+  if (!wallet) return;
+  const account = getAddress(await requestAccount(wallet));
+  state.wallet = wallet;
+  state.account = account;
+  showWho();
+  (wallet.provider as { on?: (e: string, f: (a: string[]) => void) => void }).on?.("accountsChanged", (a) => {
+    if (state.wallet !== wallet) return;
+    state.account = a[0] ? getAddress(a[0]) : null;
+    showWho();
+    void loadBids();
+    render();
+  });
+  say("");
   await ensureChain();
   await loadBids();
+}
+
+function showWho() {
+  const who = $("who");
+  who.replaceChildren();
+  if (!state.account) return;
+  const sw = document.createElement("button");
+  sw.type = "button";
+  sw.className = "who-switch";
+  sw.textContent = "Switch";
+  sw.addEventListener("click", () => guard(connect));
+  who.append(`${state.wallet?.name ?? "Wallet"} · ${short(state.account)} `, sw);
 }
 
 async function ensureChain() {

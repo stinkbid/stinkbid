@@ -52,3 +52,24 @@ input[type="range"] { width: 100%; accent-color: var(--red); min-height: 32px; }
   .slip { padding: 20px; }
   .mine { padding: 20px 20px 8px; }
 }
+
+.who-switch { font: 13px var(--mono); color: var(--bone-soft); background: none; border: 0; padding: 0 0 0 6px; min-height: 32px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.who-switch:hover { color: var(--bone); }
+
+.wp { width: min(420px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); overflow: auto; padding: 22px; border: 1px solid var(--hair-strong); background: var(--void-2); color: var(--bone); }
+.wp::backdrop { background: rgba(5, 3, 4, 0.72); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.wp-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
+.wp-head h2 { font-size: 22px; margin: 0; }
+.wp-close { font: 13px var(--mono); color: var(--bone-soft); background: none; border: 1px solid var(--hair-strong); min-height: 36px; padding: 0 12px; cursor: pointer; }
+.wp-close:hover { color: var(--bone); border-color: var(--bone); }
+.wp-k { margin: 18px 0 8px; font: 12px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--bone-soft); }
+.wp-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.wp-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 0 14px; border: 1px solid var(--hair); background: transparent; color: var(--bone); font: 500 16px var(--sans); text-align: left; text-decoration: none; cursor: pointer; }
+.wp-row:hover { border-color: var(--bone-soft); background: rgba(237, 230, 223, 0.04); }
+.wp-row:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.wp-icon { width: 28px; height: 28px; flex: none; border-radius: 6px; }
+.wp-mono { display: grid; place-items: center; border: 1px solid var(--hair-strong); font: 600 14px var(--mono); color: var(--bone-soft); }
+.wp-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wp-tag { font: 12px var(--mono); color: var(--bone-soft); }
+button.wp-row .wp-tag { color: var(--red); }
+.wp-fine { margin: 18px 0 0; font-size: 13px; color: var(--bone-soft); }
