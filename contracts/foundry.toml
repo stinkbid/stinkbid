@@ -1,0 +1,34 @@
+[profile.default]
+src = "src"
+test = "test"
+script = "script"
+out = "out"
+libs = ["lib"]
+auto_detect_solc = true
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 10000
+additional_compiler_profiles = [{ name = "permit2", via_ir = true, optimizer_runs = 1000000 }]
+compilation_restrictions = [{ paths = "lib/permit2/src/**", via_ir = true }]
+remappings = [
+  "forge-std/=lib/forge-std/src/",
+  "permit2/=lib/permit2/",
+  "solmate/=lib/permit2/lib/solmate/",
+]
+
+[profile.default.fuzz]
+runs = 1000
+
+[profile.default.invariant]
+runs = 256
+depth = 64
+fail_on_revert = false
+
+[profile.ci.fuzz]
+runs = 5000
+
+[rpc_endpoints]
+robinhood = "https://robinhood.drpc.org"
+
+[fmt]
+line_length = 120

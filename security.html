@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Security · STINKBID</title>
+    <meta name="description" content="What the StinkBid contract and keeper can and cannot do, how it was tested, and the known risks." />
+    <meta name="theme-color" content="#0B0708" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="canonical" href="https://stinkbid.pro/security" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="STINKBID" />
+    <meta property="og:title" content="Security · STINKBID" />
+    <meta property="og:description" content="What the StinkBid contract and keeper can and cannot do, how it was tested, and the known risks." />
+    <meta property="og:image" content="https://stinkbid.pro/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="module" src="/src/pages/page.ts"></script>
+  </head>
+  <body class="inner">
+    <a class="skip" href="#main">Skip to content</a>
+    <div class="backdrop" aria-hidden="true">
+      <picture>
+        <source media="(max-width: 700px)" srcset="/img/hall-m-900.webp" />
+        <img src="/img/hall-1280.webp" srcset="/img/hall-1280.webp 1280w, /img/hall-2048.webp 2048w" sizes="100vw" width="2048" height="1152" alt="" />
+      </picture>
+    </div>
+    <header class="top">
+      <a class="brand" href="/" aria-label="STINKBID home">
+        <img src="/brand/stinkbid-mark.svg" width="34" height="34" alt="" />
+        <span>STINKBID</span>
+      </a>
+      <nav aria-label="Site"><a class="top-link" href="/app">App</a><a class="top-link" href="/docs">Docs</a><a class="top-link" href="/status">Status</a></nav>
+    </header>
+    <main id="main">
+<section class="page" aria-labelledby="s-title">
+        <div class="page-head">
+          <p class="kicker"><span class="tick" aria-hidden="true"></span>Security</p>
+          <h1 id="s-title">What can go wrong</h1>
+          <p>The contract is small on purpose and has not been audited. This page lists what it guarantees, how that was tested, and the risks that remain.</p>
+        </div>
+        <div class="prose">
+          <h2>Status</h2>
+          <p class="notice"><strong>Not audited.</strong> Tested with unit, fuzz, invariant and mainnet-fork tests, listed below. During the beta the API caps orders at 100 USDG. Use amounts you can afford to lose.</p>
+
+          <h2>What the contract guarantees</h2>
+          <ul>
+            <li>USDG leaves your wallet only inside a fill of an order you signed, and only the signed amount.</li>
+            <li>You receive at least <code>minAmountOut</code> of the token you signed for, measured at your wallet, or the transaction reverts.</li>
+            <li>Each signature works once (Permit2 nonce) and only until its deadline.</li>
+            <li>The contract ends every transaction holding no USDG and no tokens.</li>
+            <li>No one can change it: no owner, no admin, no proxy, no pause, no fee.</li>
+          </ul>
+
+          <h2>What the keeper can and cannot do</h2>
+          <table>
+            <tr><th>Can</th><td>Choose when to fill an order the market has reached, and the Uniswap route.</td></tr>
+            <tr><th>Cannot</th><td>Change size, price, token, recipient or expiry; fill a cancelled or expired order; take a fee; hold your funds.</td></tr>
+            <tr><th>If it is offline</th><td>Nothing fills until it is back, or until another filler picks the order up from the public feed. Your USDG stays in your wallet.</td></tr>
+          </table>
+
+          <h2>Known risks</h2>
+          <ul>
+            <li><strong>Surplus capture.</strong> If the market falls through your level, a filler can route or sandwich the swap so you receive close to your minimum rather than more. You always get at least your price.</li>
+            <li><strong>No fill guaranteed.</strong> A wick shorter than a minute, thin liquidity, high gas or an RPC outage can leave an order unfilled.</li>
+            <li><strong>The approval.</strong> Your USDG approval sits on Permit2, a widely used Uniswap contract. Any signature you give Permit2, here or on another site, can use it. Check the spender in your wallet before signing anything.</li>
+            <li><strong>The assets.</strong> Stock tokens and USDG have issuers who can pause or restrict transfers. A restricted transfer makes a fill revert.</li>
+            <li><strong>This website.</strong> A compromised site could ask you to sign a different order. Your wallet shows the spender, token, amount and minimum; compare them with <a href="/contracts">Contracts</a>.</li>
+          </ul>
+
+          <h2>Testing</h2>
+          <table>
+            <tr><th>Unit</th><td>18 tests: fills, every revert path, tampered orders, foreign keys, wrong spender, bad paths, reentrancy from the router, a router that ignores the minimum or under-spends, a fee-on-transfer token</td></tr>
+            <tr><th>Fuzz</th><td>2 properties × 1,000 runs: fills exactly when the swap pays the minimum; no foreign key ever spends</td></tr>
+            <tr><th>Invariant</th><td>4 invariants × 256 runs × 64 calls of random sign, fill, forge, revoke and wait: the contract holds nothing; USDG leaves makers only through fills; makers always get their price; no altered order fills</td></tr>
+            <tr><th>Fork</th><td>Real Permit2, USDG, SwapRouter02 and the NVDA/USDG pool on Robinhood Chain: a bid at the market fills; a −15% bid waits and moves nothing</td></tr>
+            <tr><th>Coverage</th><td>96% of lines, 90% of statements of <code>StinkBid.sol</code></td></tr>
+          </table>
+          <p>Run them yourself: <code>cd contracts &amp;&amp; forge test</code>, and with <code>FORK_RPC=https://robinhood.drpc.org</code> for the fork tests.</p>
+
+          <h2 id="report">Reporting a problem</h2>
+          <p>Found a way to move funds that should not move? Do not post it publicly. Report it privately; the contact is in <a href="/.well-known/security.txt"><code>/.well-known/security.txt</code></a>.</p>
+        </div>
+      </section>
+    </main>
+    <footer class="foot">
+      <span class="foot-brand"><img src="/brand/stinkbid-mark.svg" width="22" height="22" alt="" /> STINKBID</span>
+      <nav class="foot-links" aria-label="Footer"><a href="/app">App</a><a href="/docs">Docs</a><a href="/contracts">Contracts</a><a href="/security">Security</a><a href="/status">Status</a><a href="/official">Official links</a><a href="/changelog">Changelog</a></nav>
+      <p>Nothing here is financial advice. STINKBID is independent and not affiliated with Robinhood. Not audited.</p>
+    </footer>
+  </body>
+</html>

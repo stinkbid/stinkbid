@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Changelog · STINKBID</title>
+    <meta name="description" content="What changed on STINKBID, by date." />
+    <meta name="theme-color" content="#0B0708" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="canonical" href="https://stinkbid.pro/changelog" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="STINKBID" />
+    <meta property="og:title" content="Changelog · STINKBID" />
+    <meta property="og:description" content="What changed on STINKBID, by date." />
+    <meta property="og:image" content="https://stinkbid.pro/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="module" src="/src/pages/page.ts"></script>
+  </head>
+  <body class="inner">
+    <a class="skip" href="#main">Skip to content</a>
+    <div class="backdrop" aria-hidden="true">
+      <picture>
+        <source media="(max-width: 700px)" srcset="/img/hall-m-900.webp" />
+        <img src="/img/hall-1280.webp" srcset="/img/hall-1280.webp 1280w, /img/hall-2048.webp 2048w" sizes="100vw" width="2048" height="1152" alt="" />
+      </picture>
+    </div>
+    <header class="top">
+      <a class="brand" href="/" aria-label="STINKBID home">
+        <img src="/brand/stinkbid-mark.svg" width="34" height="34" alt="" />
+        <span>STINKBID</span>
+      </a>
+      <nav aria-label="Site"><a class="top-link" href="/app">App</a><a class="top-link" href="/docs">Docs</a><a class="top-link" href="/status">Status</a></nav>
+    </header>
+    <main id="main">
+<section class="page" aria-labelledby="cl-title">
+        <div class="page-head">
+          <p class="kicker"><span class="tick" aria-hidden="true"></span>Changelog</p>
+          <h1 id="cl-title">What changed</h1>
+        </div>
+        <div class="prose">
+          <h2>21 November 2026</h2>
+          <ul>
+            <li>StinkBid contract written: Permit2 witness orders, USDG in, minimum measured at the maker's wallet, no owner and no fee.</li>
+            <li>Tests: 18 unit, 2 fuzz properties, 4 invariants, 2 fork tests on the real NVDA/USDG pool.</li>
+            <li>Address fixed in advance with CREATE2: <code>0x3629…9760</code>.</li>
+            <li>Order app, public order feed, minute keeper and status page.</li>
+            <li>Docs, contracts, security and official-links pages.</li>
+          </ul>
+          <h2>20 November 2026</h2>
+          <ul>
+            <li>Project started. Addresses checked on Robinhood Chain: Permit2, USDG, Uniswap v3 router and quoter.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+    <footer class="foot">
+      <span class="foot-brand"><img src="/brand/stinkbid-mark.svg" width="22" height="22" alt="" /> STINKBID</span>
+      <nav class="foot-links" aria-label="Footer"><a href="/app">App</a><a href="/docs">Docs</a><a href="/contracts">Contracts</a><a href="/security">Security</a><a href="/status">Status</a><a href="/official">Official links</a><a href="/changelog">Changelog</a></nav>
+      <p>Nothing here is financial advice. STINKBID is independent and not affiliated with Robinhood. Not audited.</p>
+    </footer>
+  </body>
+</html>

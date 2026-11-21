@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Docs · STINKBID</title>
+    <meta name="description" content="How a STINKBID order is signed, checked and filled on Robinhood Chain, and how to run your own filler." />
+    <meta name="theme-color" content="#0B0708" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="canonical" href="https://stinkbid.pro/docs" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="STINKBID" />
+    <meta property="og:title" content="Docs · STINKBID" />
+    <meta property="og:description" content="How a STINKBID order is signed, checked and filled on Robinhood Chain, and how to run your own filler." />
+    <meta property="og:image" content="https://stinkbid.pro/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="module" src="/src/pages/page.ts"></script>
+  </head>
+  <body class="inner">
+    <a class="skip" href="#main">Skip to content</a>
+    <div class="backdrop" aria-hidden="true">
+      <picture>
+        <source media="(max-width: 700px)" srcset="/img/hall-m-900.webp" />
+        <img src="/img/hall-1280.webp" srcset="/img/hall-1280.webp 1280w, /img/hall-2048.webp 2048w" sizes="100vw" width="2048" height="1152" alt="" />
+      </picture>
+    </div>
+    <header class="top">
+      <a class="brand" href="/" aria-label="STINKBID home">
+        <img src="/brand/stinkbid-mark.svg" width="34" height="34" alt="" />
+        <span>STINKBID</span>
+      </a>
+      <nav aria-label="Site"><a class="top-link" href="/app">App</a><a class="top-link" href="/docs" aria-current="page">Docs</a><a class="top-link" href="/status">Status</a></nav>
+    </header>
+    <main id="main">
+<section class="page" aria-labelledby="d-title">
+        <div class="page-head">
+          <p class="kicker"><span class="tick" aria-hidden="true"></span>Docs</p>
+          <h1 id="d-title">How a stink bid works</h1>
+          <p>A stink bid is a buy order parked far under the price. On STINKBID it is a signature: it waits off-chain, costs nothing, and turns into one on-chain swap only when the market reaches it.</p>
+        </div>
+        <nav class="toc" aria-label="On this page">
+          <a href="#flow">The flow</a><a href="#order">The signed order</a><a href="#fill">What a fill checks</a><a href="#cancel">Cancelling</a><a href="#keeper">The keeper</a><a href="#filler">Run your own filler</a><a href="#limits">Beta limits</a><a href="#api">API</a>
+        </nav>
+        <div class="prose">
+          <h2 id="flow">The flow</h2>
+          <ol>
+            <li><strong>Approve once.</strong> You approve USDG to <a href="/contracts">Permit2</a>, the Uniswap signature-transfer contract. The app approves exactly the total of your open bids, not an unlimited amount.</li>
+            <li><strong>Sign the slip.</strong> Stock, size in USDG, how far under the price, expiry. Your wallet shows it as an EIP-712 message with spender StinkBid and token USDG. No transaction, no gas.</li>
+            <li><strong>Wait.</strong> Every minute the keeper asks the Uniswap quoter what your USDG would buy right now.</li>
+            <li><strong>Fill.</strong> When the quote reaches your minimum, the keeper calls <code>StinkBid.fill</code>. In one transaction Permit2 pulls your USDG, Uniswap swaps it and the stock token lands in your wallet. If the swap would pay less than your minimum, the whole transaction reverts and nothing moves.</li>
+          </ol>
+
+          <h2 id="order">The signed order</h2>
+          <p>The order travels as the <em>witness</em> of a Permit2 <code>PermitWitnessTransferFrom</code>. Permit2 refuses the transfer unless every field below matches the signature exactly.</p>
+          <pre>PermitWitnessTransferFrom(
+  TokenPermissions permitted,   // token = USDG, amount = your size
+  address spender,              // StinkBid, and only StinkBid
+  uint256 nonce,                // random; one use only
+  uint256 deadline,             // expiry, unix seconds
+  Order witness
+)
+Order(address maker, address tokenOut, uint256 minAmountOut)</pre>
+          <p><code>minAmountOut</code> is your price. The app sets it from a live Uniswap quote for your size: for a bid 15% under, it asks for <code>quote / 0.85</code> tokens, so the order fills once the same USDG buys that many.</p>
+
+          <h2 id="fill">What a fill checks</h2>
+          <p>Anyone may call <code>fill(order, permit, signature, path)</code>. The caller chooses the route, nothing else:</p>
+          <ul>
+            <li>The input token must be USDG and the path must start at USDG and end at the order's token.</li>
+            <li>Permit2 verifies the signature, the deadline and the nonce, and burns the nonce before any USDG moves.</li>
+            <li>After the swap the contract measures the change in <strong>your</strong> balance of the token, and reverts if it is under <code>minAmountOut</code>. It does not trust the router's return value.</li>
+            <li>It reverts if any USDG would stay behind in the contract. Between transactions it holds nothing.</li>
+          </ul>
+          <p>There is no owner, admin key, fee switch, pause or upgrade. The constructor fixes Permit2, the Uniswap router and USDG forever.</p>
+
+          <h2 id="cancel">Cancelling</h2>
+          <p>Cancel in the app. It sends one Permit2 transaction, <code>invalidateUnorderedNonces</code>, from your wallet. After it confirms, the signature is dead for everyone, including any other filler who copied it. Expired orders need no action.</p>
+          <p>You can also cancel without this site, from the explorer's write tab on Permit2, or by lowering your USDG approval to Permit2, which stops every order at once.</p>
+
+          <h2 id="keeper">The keeper</h2>
+          <p>A Cloudflare Worker runs every minute. It expires old orders, checks each maker's USDG balance, approval and nonce, gets one quote per order and simulates the fill before sending it. It pays the gas and takes no fee. Its run log is public on the <a href="/status">status page</a>.</p>
+          <p>The keeper is a convenience, not a gatekeeper: it can fill an order only as signed, and it cannot change the price, size, token, recipient or expiry.</p>
+
+          <h2 id="filler">Run your own filler</h2>
+          <p>Open orders, signatures included, are public at <code>GET /api/orders/open</code>. Anyone can fill them, which also means nobody has to trust our keeper being online.</p>
+          <pre>// for each order from /api/orders/open
+stinkbid.fill(
+  { maker, tokenOut: token_out, minAmountOut: min_amount_out },
+  { permitted: { token: USDG, amount: amount_in }, nonce, deadline },
+  signature,
+  path            // USDG → fee → token, packed
+)</pre>
+          <p>A filler can choose when to fill and through which pools. It can never pay you less than your minimum. If the market falls further than your bid, a filler may route so that you get close to the minimum; that is the price you set.</p>
+
+          <h2 id="limits">Beta limits</h2>
+          <table>
+            <tr><th>Size</th><td>1 to 100 USDG per order</td></tr>
+            <tr><th>Open orders</th><td>Up to 10 per wallet</td></tr>
+            <tr><th>Expiry</th><td>Up to 30 days</td></tr>
+            <tr><th>Depth</th><td>1% to 50% under the current quote</td></tr>
+            <tr><th>Fee</th><td>None. You pay the Uniswap pool fee inside the swap</td></tr>
+            <tr><th>Markets</th><td>10 stock tokens with deep USDG pools, listed on <a href="/contracts">Contracts</a></td></tr>
+          </table>
+          <p>The limits live in the API, not in the contract. They are there while the contract is new and unaudited.</p>
+
+          <h2 id="api">API</h2>
+          <table>
+            <tr><th><code>GET /api/markets</code></th><td>Markets, pool, price for a 100 USDG buy, beta limits</td></tr>
+            <tr><th><code>GET /api/quote?symbol=&amp;amount=</code></th><td>Uniswap quote for a size</td></tr>
+            <tr><th><code>POST /api/orders</code></th><td>Submit a signed order (checked: signature, balance, approval, nonce)</td></tr>
+            <tr><th><code>GET /api/orders?maker=</code></th><td>A wallet's orders</td></tr>
+            <tr><th><code>GET /api/orders/open</code></th><td>Every open order with signature, for fillers</td></tr>
+            <tr><th><code>GET /api/book</code></th><td>Open bids and recent fills per market, no addresses</td></tr>
+            <tr><th><code>GET /api/status</code></th><td>Contract, chain head, keeper runs</td></tr>
+          </table>
+        </div>
+      </section>
+    </main>
+    <footer class="foot">
+      <span class="foot-brand"><img src="/brand/stinkbid-mark.svg" width="22" height="22" alt="" /> STINKBID</span>
+      <nav class="foot-links" aria-label="Footer"><a href="/app">App</a><a href="/docs">Docs</a><a href="/contracts">Contracts</a><a href="/security">Security</a><a href="/status">Status</a><a href="/official">Official links</a><a href="/changelog">Changelog</a></nav>
+      <p>Nothing here is financial advice. STINKBID is independent and not affiliated with Robinhood. Not audited.</p>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Place a stink bid · STINKBID</title>
+    <meta name="description" content="Sign a USDG buy order far under the price of a tokenized stock on Robinhood Chain. Your USDG stays in your wallet until it fills." />
+    <meta name="theme-color" content="#0B0708" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="canonical" href="https://stinkbid.pro/app" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="STINKBID" />
+    <meta property="og:title" content="Place a stink bid · STINKBID" />
+    <meta property="og:description" content="Sign a USDG buy order far under the price of a tokenized stock on Robinhood Chain. Your USDG stays in your wallet until it fills." />
+    <meta property="og:image" content="https://stinkbid.pro/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="module" src="/src/app/order.ts"></script>
+  </head>
+  <body class="inner">
+    <a class="skip" href="#main">Skip to content</a>
+    <div class="backdrop" aria-hidden="true">
+      <picture>
+        <source media="(max-width: 700px)" srcset="/img/hall-m-900.webp" />
+        <img src="/img/hall-1280.webp" srcset="/img/hall-1280.webp 1280w, /img/hall-2048.webp 2048w" sizes="100vw" width="2048" height="1152" alt="" />
+      </picture>
+    </div>
+    <header class="top">
+      <a class="brand" href="/" aria-label="STINKBID home">
+        <img src="/brand/stinkbid-mark.svg" width="34" height="34" alt="" />
+        <span>STINKBID</span>
+      </a>
+      <nav aria-label="Site"><a class="top-link" href="/app" aria-current="page">App</a><a class="top-link" href="/docs">Docs</a><a class="top-link" href="/status">Status</a></nav>
+    </header>
+    <main id="main">
+<section class="page app" aria-labelledby="app-title">
+        <div class="page-head">
+          <p class="kicker"><span class="tick" aria-hidden="true"></span>Beta · Robinhood Chain</p>
+          <h1 id="app-title">Place a stink bid</h1>
+          <p>Pick a stock, set how far under today's price you want to buy, and sign. Nothing leaves your wallet until the market reaches your level.</p>
+        </div>
+
+        <p class="notice" id="live-note" hidden></p>
+
+        <div class="app-grid">
+          <form class="slip" id="slip" novalidate>
+            <div class="slip-row">
+              <label class="ctl-k" for="market">Stock</label>
+              <select id="market" name="market"></select>
+              <p class="slip-help" id="market-price">Loading prices…</p>
+            </div>
+
+            <div class="slip-row">
+              <label class="ctl-k" for="size">Size</label>
+              <div class="field-unit"><input id="size" name="size" type="number" inputmode="decimal" min="1" max="100" step="1" value="25" aria-describedby="size-help" /><span>USDG</span></div>
+              <p class="slip-help" id="size-help">1 to 100 USDG per order during the beta.</p>
+            </div>
+
+            <div class="slip-row">
+              <label class="ctl-k" for="depth">Under today's price <output class="hot" id="depth-out" for="depth">−15%</output></label>
+              <input id="depth" name="depth" type="range" min="1" max="50" step="1" value="15" />
+            </div>
+
+            <fieldset class="slip-row">
+              <legend class="ctl-k">Expires in</legend>
+              <div class="chips">
+                <label><input type="radio" name="days" value="1" /> <span>1 day</span></label>
+                <label><input type="radio" name="days" value="7" checked /> <span>7 days</span></label>
+                <label><input type="radio" name="days" value="30" /> <span>30 days</span></label>
+              </div>
+            </fieldset>
+
+            <dl class="readout" aria-live="polite">
+              <div><dt>Your bid</dt><dd id="r-bid">–</dd></div>
+              <div><dt>You get at least</dt><dd id="r-min">–</dd></div>
+              <div><dt>Fills when the price is at or under</dt><dd id="r-level">–</dd></div>
+            </dl>
+
+            <div class="slip-actions">
+              <button type="button" class="btn" id="action">Connect wallet</button>
+              <p class="slip-status" id="slip-status" role="status"></p>
+            </div>
+            <p class="slip-fine">Signing does not move funds. The first order asks for one USDG approval to Permit2, the Uniswap contract that checks your signature. Fees: none during the beta; you pay the pool's swap fee inside the fill.</p>
+          </form>
+
+          <section class="mine" aria-labelledby="mine-title">
+            <div class="mine-head">
+              <h2 id="mine-title">Your bids</h2>
+              <span class="mono" id="who"></span>
+            </div>
+            <ol class="bids" id="bids"><li class="empty">Connect a wallet to see your bids.</li></ol>
+          </section>
+        </div>
+      </section>
+    </main>
+    <footer class="foot">
+      <span class="foot-brand"><img src="/brand/stinkbid-mark.svg" width="22" height="22" alt="" /> STINKBID</span>
+      <nav class="foot-links" aria-label="Footer"><a href="/app">App</a><a href="/docs">Docs</a><a href="/contracts">Contracts</a><a href="/security">Security</a><a href="/status">Status</a><a href="/official">Official links</a><a href="/changelog">Changelog</a></nav>
+      <p>Nothing here is financial advice. STINKBID is independent and not affiliated with Robinhood. Not audited.</p>
+    </footer>
+  </body>
+</html>

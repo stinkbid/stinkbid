@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Status · STINKBID</title>
+    <meta name="description" content="Live state of the StinkBid contract and the keeper on Robinhood Chain." />
+    <meta name="theme-color" content="#0B0708" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="canonical" href="https://stinkbid.pro/status" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="STINKBID" />
+    <meta property="og:title" content="Status · STINKBID" />
+    <meta property="og:description" content="Live state of the StinkBid contract and the keeper on Robinhood Chain." />
+    <meta property="og:image" content="https://stinkbid.pro/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="module" src="/src/pages/status.ts"></script>
+  </head>
+  <body class="inner">
+    <a class="skip" href="#main">Skip to content</a>
+    <div class="backdrop" aria-hidden="true">
+      <picture>
+        <source media="(max-width: 700px)" srcset="/img/hall-m-900.webp" />
+        <img src="/img/hall-1280.webp" srcset="/img/hall-1280.webp 1280w, /img/hall-2048.webp 2048w" sizes="100vw" width="2048" height="1152" alt="" />
+      </picture>
+    </div>
+    <header class="top">
+      <a class="brand" href="/" aria-label="STINKBID home">
+        <img src="/brand/stinkbid-mark.svg" width="34" height="34" alt="" />
+        <span>STINKBID</span>
+      </a>
+      <nav aria-label="Site"><a class="top-link" href="/app">App</a><a class="top-link" href="/docs">Docs</a><a class="top-link" href="/status" aria-current="page">Status</a></nav>
+    </header>
+    <main id="main">
+<section class="page" aria-labelledby="st-title">
+        <div class="page-head">
+          <p class="kicker"><span class="tick" aria-hidden="true"></span>Live · refreshes every 15 seconds</p>
+          <h1 id="st-title">Status</h1>
+          <p>Read from the chain and from the keeper's own run log. Nothing on this page is typed in by hand.</p>
+        </div>
+        <div class="tiles" id="tiles">
+          <div class="tile"><div class="k">Contract</div><div class="v" id="t-contract">–</div><div class="s" id="t-contract-s"></div></div>
+          <div class="tile"><div class="k">Keeper</div><div class="v" id="t-keeper">–</div><div class="s" id="t-keeper-s"></div></div>
+          <div class="tile"><div class="k">Chain head</div><div class="v" id="t-block">–</div><div class="s" id="t-block-s"></div></div>
+          <div class="tile"><div class="k">Keeper gas</div><div class="v" id="t-gas">–</div><div class="s" id="t-gas-s"></div></div>
+          <div class="tile"><div class="k">Open bids</div><div class="v" id="t-open">–</div><div class="s">signed, waiting</div></div>
+          <div class="tile"><div class="k">Fills, 24 hours</div><div class="v" id="t-fills">–</div><div class="s" id="t-fills-s"></div></div>
+          <div class="tile"><div class="k">Runs, last hour</div><div class="v" id="t-runs">–</div><div class="s" id="t-runs-s"></div></div>
+          <div class="tile"><div class="k">Last error</div><div class="v" id="t-err">–</div><div class="s" id="t-err-s"></div></div>
+        </div>
+        <p class="slip-help" id="t-updated" style="margin-top:18px"></p>
+      </section>
+    </main>
+    <footer class="foot">
+      <span class="foot-brand"><img src="/brand/stinkbid-mark.svg" width="22" height="22" alt="" /> STINKBID</span>
+      <nav class="foot-links" aria-label="Footer"><a href="/app">App</a><a href="/docs">Docs</a><a href="/contracts">Contracts</a><a href="/security">Security</a><a href="/status">Status</a><a href="/official">Official links</a><a href="/changelog">Changelog</a></nav>
+      <p>Nothing here is financial advice. STINKBID is independent and not affiliated with Robinhood. Not audited.</p>
+    </footer>
+  </body>
+</html>

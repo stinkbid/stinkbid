@@ -1,0 +1,12 @@
+{
+  "name": "STINKBID",
+  "website": "https://stinkbid.pro",
+  "chainId": 4663,
+  "contracts": {
+    "StinkBid": "0x362917b506695C2096e361Fc032D4315f2439760"
+  },
+  "token": null,
+  "x": null,
+  "source": null,
+  "updated": "2026-11-21"
+}

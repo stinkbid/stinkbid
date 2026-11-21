@@ -1,0 +1,58 @@
+/* Inner pages (app, docs, status, contracts, security, official, changelog). Tokens and chrome come from landing.css. */
+.page { padding: 128px var(--gutter) 96px; max-width: 1240px; margin: 0 auto; }
+.page-head h1 { display: block; margin-top: 22px; font-size: clamp(40px, 6vw, 88px); }
+.page-head p { margin-top: 20px; max-width: 40em; color: var(--bone-soft); }
+.page-head + * { margin-top: 56px; }
+
+/* Long-form reading: docs, security, changelog */
+.prose { max-width: 46em; }
+.prose h2 { margin: 64px 0 18px; font-size: clamp(26px, 2.6vw, 36px); line-height: 1.05; }
+.prose h3 { margin: 36px 0 10px; font-size: 20px; line-height: 1.2; }
+.prose p, .prose li { color: var(--bone-soft); }
+.prose p + p, .prose p + ul, .prose ul + p, .prose p + ol, .prose ol + p, .prose pre + p, .prose p + pre { margin-top: 16px; }
+.prose ul, .prose ol { margin: 14px 0 0; padding-left: 1.2em; }
+.prose li + li { margin-top: 8px; }
+.prose strong { color: var(--bone); font-weight: 600; }
+.prose a { color: var(--bone); text-decoration-color: var(--red); text-underline-offset: 3px; }
+.prose code, .mono { font-family: var(--mono); font-size: 0.86em; color: var(--bone); }
+.prose pre { overflow-x: auto; padding: 18px 20px; border: 1px solid var(--hair); background: rgba(11, 7, 8, 0.7); font: 13px/1.6 var(--mono); color: var(--bone); }
+.prose table { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 15px; }
+.prose th, .prose td { text-align: left; padding: 10px 12px 10px 0; border-top: 1px solid var(--hair); vertical-align: top; color: var(--bone-soft); }
+.prose th { color: var(--bone); font-weight: 600; }
+.toc { display: flex; flex-wrap: wrap; gap: 8px 20px; font-family: var(--mono); font-size: 13px; }
+.toc a { color: var(--bone-soft); text-decoration: none; }
+.toc a:hover { color: var(--bone); }
+
+/* Address rows: contracts, official */
+.rows { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--hair); }
+.rows li { display: grid; grid-template-columns: minmax(10em, 15em) 1fr auto; gap: 8px 24px; align-items: baseline; padding: 18px 0; border-bottom: 1px solid var(--hair); }
+.rows .k { font-weight: 600; }
+.rows .k small { display: block; font-weight: 400; font-size: 14px; color: var(--bone-soft); }
+.rows .v { font-family: var(--mono); font-size: 14px; overflow-wrap: anywhere; color: var(--bone); }
+.rows .v a { text-decoration-color: var(--hair-strong); text-underline-offset: 3px; }
+.copy { min-height: 36px; padding: 0 12px; border: 1px solid var(--hair-strong); background: transparent; color: var(--bone-soft); font: 13px var(--mono); }
+.copy:hover { color: var(--bone); border-color: var(--bone); }
+
+/* Status tiles */
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--hair); border-left: 1px solid var(--hair); }
+.tile { padding: 22px 20px 24px; border-right: 1px solid var(--hair); border-bottom: 1px solid var(--hair); background: rgba(11, 7, 8, 0.55); }
+.tile .k { font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em; color: var(--bone-soft); }
+.tile .v { margin-top: 10px; font-stretch: 125%; font-weight: 700; font-size: clamp(22px, 2.4vw, 32px); line-height: 1; }
+.tile .s { margin-top: 10px; font-size: 14px; color: var(--bone-soft); }
+.dot { display: inline-block; width: 9px; height: 9px; margin-right: 10px; border-radius: 50%; background: var(--bone-soft); vertical-align: 0.12em; }
+.dot.ok { background: #5fd38d; box-shadow: 0 0 10px rgba(95, 211, 141, 0.6); }
+.dot.warn { background: #f2b33d; }
+.dot.bad { background: var(--red); box-shadow: 0 0 10px rgba(255, 59, 31, 0.6); }
+
+.notice { padding: 16px 18px; border: 1px solid var(--hair-strong); border-left: 2px solid var(--red); background: rgba(11, 7, 8, 0.7); color: var(--bone-soft); }
+.notice strong { color: var(--bone); }
+
+@media (max-width: 900px) {
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rows li { grid-template-columns: 1fr auto; }
+  .rows .k { grid-column: 1 / -1; }
+}
+@media (max-width: 520px) {
+  .tiles { grid-template-columns: 1fr; }
+}
+.sub-h { margin: 72px 0 18px; font-size: clamp(26px, 2.6vw, 36px); }

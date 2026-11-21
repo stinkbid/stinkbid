@@ -1,0 +1,39 @@
+{
+  "name": "stinkbid",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite build && vite preview",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.worker.json --noEmit",
+    "db:migrate:local": "wrangler d1 migrations apply stinkbid --local",
+    "db:migrate:remote": "wrangler d1 migrations apply stinkbid --remote",
+    "deploy": "vite build && wrangler deploy",
+    "cf-typegen": "wrangler types worker/env.d.ts --env-interface Env",
+    "test:contracts": "cd contracts && forge test",
+    "test:fork": "cd contracts && FORK_RPC=${FORK_RPC:-https://robinhood.drpc.org} forge test --match-contract Fork",
+    "test:e2e": "sh scripts/e2e-fork.sh",
+    "pages": "python3 _pages/shell.py"
+  },
+  "dependencies": {
+    "@fontsource-variable/archivo": "^5.3.0",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "hono": "^4.13.8",
+    "viem": "^2.56.8"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.57.3",
+    "@cloudflare/workers-types": "^5.20260922.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0",
+    "wrangler": "^4.136.3"
+  },
+  "allowScripts": {
+    "workerd@1.20261117.1": true,
+    "workerd@1.20261119.1": true,
+    "esbuild@0.28.2": true
+  },
+  "license": "MIT"
+}

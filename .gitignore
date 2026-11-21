@@ -1,0 +1,13 @@
+node_modules
+dist
+.wrangler
+.dev.vars
+.env.production.local
+*.log
+.env
+_assets-src/gen*/
+contracts/out
+contracts/cache
+contracts/broadcast
+docs/
+_assets-src/

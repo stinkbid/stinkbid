@@ -1,0 +1,33 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "stinkbid",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    // Add app routes here (e.g. "/app", "/t/*") when the Worker must serve them.
+    "run_worker_first": ["/api/*"]
+  },
+  // Creates the DNS records on deploy. The domain must already be Active in Cloudflare.
+  "routes": [
+    { "pattern": "stinkbid.pro", "custom_domain": true },
+    { "pattern": "www.stinkbid.pro", "custom_domain": true }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "stinkbid",
+      // From `npx wrangler d1 create stinkbid`
+      "database_id": "d70670a3-1ab1-4b26-95c4-03f5817b1fa4",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    // Origins allowed to POST to the API. Local dev overrides this in .dev.vars.
+    "ALLOWED_ORIGINS": "https://stinkbid.pro,https://www.stinkbid.pro"
+  },
+  // The keeper: checks open orders every minute.
+  "triggers": { "crons": ["* * * * *"] },
+  "observability": { "enabled": true }
+}

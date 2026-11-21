@@ -1,0 +1,63 @@
+<!-- title: Place a stink bid -->
+<!-- desc: Sign a USDG buy order far under the price of a tokenized stock on Robinhood Chain. Your USDG stays in your wallet until it fills. -->
+<!-- script: /src/app/order.ts -->
+
+      <section class="page app" aria-labelledby="app-title">
+        <div class="page-head">
+          <p class="kicker"><span class="tick" aria-hidden="true"></span>Beta · Robinhood Chain</p>
+          <h1 id="app-title">Place a stink bid</h1>
+          <p>Pick a stock, set how far under today's price you want to buy, and sign. Nothing leaves your wallet until the market reaches your level.</p>
+        </div>
+
+        <p class="notice" id="live-note" hidden></p>
+
+        <div class="app-grid">
+          <form class="slip" id="slip" novalidate>
+            <div class="slip-row">
+              <label class="ctl-k" for="market">Stock</label>
+              <select id="market" name="market"></select>
+              <p class="slip-help" id="market-price">Loading prices…</p>
+            </div>
+
+            <div class="slip-row">
+              <label class="ctl-k" for="size">Size</label>
+              <div class="field-unit"><input id="size" name="size" type="number" inputmode="decimal" min="1" max="100" step="1" value="25" aria-describedby="size-help" /><span>USDG</span></div>
+              <p class="slip-help" id="size-help">1 to 100 USDG per order during the beta.</p>
+            </div>
+
+            <div class="slip-row">
+              <label class="ctl-k" for="depth">Under today's price <output class="hot" id="depth-out" for="depth">−15%</output></label>
+              <input id="depth" name="depth" type="range" min="1" max="50" step="1" value="15" />
+            </div>
+
+            <fieldset class="slip-row">
+              <legend class="ctl-k">Expires in</legend>
+              <div class="chips">
+                <label><input type="radio" name="days" value="1" /> <span>1 day</span></label>
+                <label><input type="radio" name="days" value="7" checked /> <span>7 days</span></label>
+                <label><input type="radio" name="days" value="30" /> <span>30 days</span></label>
+              </div>
+            </fieldset>
+
+            <dl class="readout" aria-live="polite">
+              <div><dt>Your bid</dt><dd id="r-bid">–</dd></div>
+              <div><dt>You get at least</dt><dd id="r-min">–</dd></div>
+              <div><dt>Fills when the price is at or under</dt><dd id="r-level">–</dd></div>
+            </dl>
+
+            <div class="slip-actions">
+              <button type="button" class="btn" id="action">Connect wallet</button>
+              <p class="slip-status" id="slip-status" role="status"></p>
+            </div>
+            <p class="slip-fine">Signing does not move funds. The first order asks for one USDG approval to Permit2, the Uniswap contract that checks your signature. Fees: none during the beta; you pay the pool's swap fee inside the fill.</p>
+          </form>
+
+          <section class="mine" aria-labelledby="mine-title">
+            <div class="mine-head">
+              <h2 id="mine-title">Your bids</h2>
+              <span class="mono" id="who"></span>
+            </div>
+            <ol class="bids" id="bids"><li class="empty">Connect a wallet to see your bids.</li></ol>
+          </section>
+        </div>
+      </section>
