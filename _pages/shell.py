@@ -3,7 +3,7 @@
 import pathlib, re
 root = pathlib.Path(__file__).resolve().parent.parent
 NAV = [("/app", "App"), ("/docs", "Docs"), ("/status", "Status")]
-FOOT = [("/app", "App"), ("/docs", "Docs"), ("/contracts", "Contracts"), ("/security", "Security"), ("/status", "Status"), ("/official", "Official links"), ("/changelog", "Changelog")]
+FOOT = [("/app", "App"), ("/docs", "Docs"), ("/contracts", "Contracts"), ("/security", "Security"), ("/status", "Status"), ("/official", "Official links"), ("/changelog", "Changelog"), ("https://github.com/stinkbid/stinkbid", "GitHub")]
 
 def shell(name, title, desc, body, script):
     nav = "".join(f'<a class="top-link" href="{h}"{" aria-current=\"page\"" if h == "/" + name else ""}>{t}</a>' for h, t in NAV)

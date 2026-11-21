@@ -19,4 +19,4 @@ StinkBid has **not been audited**. During the beta the API caps orders at 100 US
 
 ## Reporting
 
-Report vulnerabilities privately. Don't open a public issue. The contact is in https://stinkbid.pro/.well-known/security.txt.
+Report vulnerabilities privately through GitHub: https://github.com/stinkbid/stinkbid/security/advisories/new. Don't open a public issue.

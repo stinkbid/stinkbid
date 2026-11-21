@@ -1,5 +1,7 @@
 # STINKBID
 
+[![ci](https://github.com/stinkbid/stinkbid/actions/workflows/ci.yml/badge.svg)](https://github.com/stinkbid/stinkbid/actions/workflows/ci.yml) [![StinkBid verified on Sourcify](https://img.shields.io/badge/StinkBid-verified%20on%20Sourcify-45b558.svg)](https://repo.sourcify.dev/4663/0x362917b506695C2096e361Fc032D4315f2439760) [![License: MIT](https://img.shields.io/badge/license-MIT-ff3b1f.svg)](LICENSE)
+
 Stink bids for tokenized stocks on Robinhood Chain. You sign a USDG buy order far under the price. It waits off-chain, costs nothing, and becomes one on-chain swap when the market reaches it. Your USDG stays in your wallet until then.
 
 Site: https://stinkbid.pro · App: https://stinkbid.pro/app · Docs: https://stinkbid.pro/docs · Status: https://stinkbid.pro/status
