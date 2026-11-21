@@ -31,7 +31,7 @@ if (backdrop && !reduceMotion && window.matchMedia("(pointer: fine)").matches) {
 }
 
 // Sections fade up once when they enter the viewport.
-const revealables = document.querySelectorAll(".statement > *:not(img), .level-copy > *, .stage, .fill-body, .wall-copy, .wall-art, .fine");
+const revealables = document.querySelectorAll(".statement > *:not(img), .level-copy > *, .stage, .fill-body, .keep-list li, .wall-copy, .wall-art, .fine");
 if (!reduceMotion && "IntersectionObserver" in window) {
   const io = new IntersectionObserver(
     (entries) => {

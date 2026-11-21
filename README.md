@@ -12,10 +12,10 @@ Site: https://stinkbid.pro · App: https://stinkbid.pro/app · Docs: https://sti
 
 1. The maker approves USDG to [Permit2](https://github.com/Uniswap/permit2) once.
 2. The maker signs a Permit2 `PermitWitnessTransferFrom` whose witness is the order: `Order(address maker, address tokenOut, uint256 minAmountOut)`. The spender is StinkBid, and the signature works once and only until its deadline.
-3. A keeper, a Cloudflare Worker that runs every minute, quotes each open order on Uniswap v3. When the quote reaches `minAmountOut`, it calls `StinkBid.fill`.
+3. A keeper, a Cloudflare Worker that checks about every 10 seconds, quotes each open order on Uniswap v3. When the quote reaches `minAmountOut` and the order's optional conditions hold (Chainlink confirms the drop; US market closed), it calls `StinkBid.fill`.
 4. `fill` pulls the USDG through Permit2 and swaps it on SwapRouter02 straight to the maker. It then measures the maker's balance change and reverts if that change is under `minAmountOut`.
 
-Anyone can call `fill`. Open orders, signatures included, are public at `GET /api/orders/open`, so the keeper is a convenience, not a gatekeeper. The keeper's key holds only gas money and cannot spend USDG or fill below a signed minimum; [SECURITY.md](SECURITY.md#what-the-keeper-key-can-and-cannot-do) lists what it can do.
+Anyone can call `fill`. Active orders, signatures included, are public at `GET /api/orders/open`, so the keeper is a convenience, not a gatekeeper. The keeper's key holds only gas money and cannot spend USDG or fill below a signed minimum; [SECURITY.md](SECURITY.md#what-the-keeper-key-can-and-cannot-do) lists what it can do.
 
 ## Contracts (Robinhood Chain, 4663)
 
@@ -43,7 +43,7 @@ FORK_RPC=https://robinhood.drpc.org forge test --match-contract Fork
 | Fuzz (2 × 1,000 runs) | fills exactly when the swap pays the minimum; no foreign key ever spends |
 | Invariant (4 × 256 runs × 64 calls) | the contract holds nothing; USDG leaves makers only through fills; makers always get their price; no altered order fills |
 | Fork (2) | real Permit2, USDG, SwapRouter02 and the NVDA/USDG pool: a bid at the market fills, a −15% bid waits |
-| End to end (`npm run test:e2e`) | a local fork running the real site API and keeper: forged order rejected → bid placed → market falls → keeper fills → maker paid at least the minimum → cancel → spent nonce refused |
+| End to end (`npm run test:e2e`) | a local fork running the real site API and keeper: forged order rejected → bid placed → oracle-confirmed bid placed → pool falls → keeper fills the pool bid, the oracle bid waits unpublished → maker paid at least the minimum → cancel → spent nonce refused (14 checks) |
 
 Coverage of `StinkBid.sol`: 96% of lines. Slither runs in CI; [contracts/ANALYSIS.md](contracts/ANALYSIS.md) explains each excluded detector. A fill on the NVDA pool costs about 296k gas.
 
@@ -54,7 +54,7 @@ contracts/          Foundry: StinkBid.sol, tests, CREATE2 deploy script
 shared/config.ts    addresses, markets, EIP-712 types, beta limits (site, API and keeper share it)
 worker/             Cloudflare Worker (Hono): order API, keeper cron, status
   orders.ts         /api/markets, /quote, /orders, /orders/open, /book
-  keeper.ts         every minute: expire, check balance, approval and nonce, quote, simulate, fill
+  keeper.ts         every ~10 s: expire, check balance, approval, nonce and conditions, quote, simulate, fill
   status.ts         /api/status from the keeper's run log and the chain
 src/app/            order page: wallet, Permit2 approval, typed-data signing, cancel
 src/pages/          docs, contracts, security, status, official links, changelog

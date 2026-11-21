@@ -142,10 +142,22 @@
           <ol class="steps">
             <li><span class="n">01</span><h3>Approve USDG once</h3><p>One approval to Permit2, the standard Uniswap contract already on Robinhood Chain.</p></li>
             <li><span class="n">02</span><h3>Sign the slip</h3><p>Asset, depth, size, expiry. A signature, not a deposit.</p></li>
-            <li><span class="n">03</span><h3>The price drops in</h3><p>A keeper watches the pool. At your level, one transaction pulls your USDG, swaps it on Uniswap and sends the tokens to you.</p></li>
+            <li><span class="n">03</span><h3>The price drops in</h3><p>A keeper checks the pool about every 10 seconds. At your level, one transaction pulls your USDG, swaps it on Uniswap and sends the tokens to you.</p></li>
             <li><span class="n">04</span><h3>Your floor holds</h3><p>If the swap would pay less than your price, the transaction fails and nothing moves. Revoke the signature to cancel.</p></li>
           </ol>
         </div>
+      </section>
+
+      <!-- 4b. What stays yours: custody and the guarantee, said plainly. -->
+      <section class="keep" aria-labelledby="keep-title">
+        <p class="kicker"><span class="tick" aria-hidden="true"></span>What stays yours</p>
+        <h2 id="keep-title">You keep the money.<br />The contract keeps the price.</h2>
+        <ul class="keep-list">
+          <li><h3>In your wallet until it fills</h3><p>A bid is a signature, not a deposit. Your USDG stays in your wallet, and your private key never leaves it.</p></li>
+          <li><h3>A floor the contract checks</h3><p>At the fill, the contract measures the stock that lands in your wallet. Below the minimum you signed, the whole transaction reverts.</p></li>
+          <li><h3>Everything above the floor is yours</h3><p>If the price falls through your level, the swap pays you more than the minimum, and all of it goes to your wallet.</p></li>
+          <li><h3>Open to check, open to fill</h3><p>The contract is verified and the code is public. Active bids are public too, so anyone can fill them, on your terms only.</p></li>
+        </ul>
       </section>
 
       <!-- 5. Ladder: copy left, the render dissolving on the right. -->
@@ -163,7 +175,7 @@
         <div class="wall-copy">
           <p class="kicker"><span class="tick" aria-hidden="true"></span>Bid wall</p>
           <h2 id="wall-title">Ladder the crash.</h2>
-          <p>Stack slips at different depths. Each is its own signed order, so a shallow dip takes the top rung and a real crash takes the rest.</p>
+          <p>Pick a ladder of 3 or 5 in the app. Each rung is its own signed order, so a shallow dip takes the top rung and a real crash takes the rest. Add "the official price confirms" and a dip that only happens in the pool fills nothing.</p>
           <p class="note">Levels shown are an example, not a recommendation.</p>
         </div>
       </section>

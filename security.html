@@ -61,8 +61,9 @@
 
           <h2>Known risks</h2>
           <ul>
-            <li><strong>Surplus capture.</strong> If the market falls through your level, a filler can route or sandwich the swap so you receive close to your minimum rather than more. You always get at least your price.</li>
-            <li><strong>No fill guaranteed.</strong> A wick shorter than a minute, thin liquidity, high gas or an RPC outage can leave an order unfilled.</li>
+            <li><strong>Surplus capture.</strong> When the market falls through your level, the swap pays more than your minimum and all of it goes to your wallet; the end-to-end test checks this. A filler could still route or sandwich the swap to keep part of that surplus. Robinhood Chain is an Arbitrum Orbit chain whose sequencer orders transactions first come, first served, with no public mempool to watch, which makes sandwiching harder but not impossible. You always get at least your price.</li>
+            <li><strong>No fill guaranteed.</strong> The keeper checks about every 10 seconds, so a wick shorter than that, thin liquidity, high gas or an RPC outage can leave an order unfilled.</li>
+            <li><strong>Conditions are off-chain.</strong> "The official price confirms" and "only while US markets are closed" are applied by the API and the keeper. The contract enforces only your signed minimum. A signature published while a condition held stays valid if the condition later stops holding, until you cancel or it expires.</li>
             <li><strong>The approval.</strong> Your USDG approval sits on Permit2, a widely used Uniswap contract. Any signature you give Permit2, here or on another site, can use it. Check the spender in your wallet before signing anything.</li>
             <li><strong>The assets.</strong> Stock tokens and USDG have issuers who can pause or restrict transfers. A restricted transfer makes a fill revert.</li>
             <li><strong>This website.</strong> A compromised site could ask you to sign a different order. Your wallet shows the spender, token, amount and minimum; compare them with <a href="/contracts">Contracts</a>.</li>

@@ -179,6 +179,16 @@ h2 { font-size: clamp(36px, 5.4vw, 84px); }
 .wall-copy .note { font-family: var(--mono); font-size: 13px; }
 
 /* Fine print as a spec sheet */
+/* What stays yours */
+.keep { padding: clamp(80px, 10vw, 140px) var(--gutter); border-top: 1px solid var(--hair); }
+.keep h2 { margin-top: 22px; font-size: clamp(34px, 4.6vw, 68px); }
+.keep-list { list-style: none; margin: 48px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.keep-list li { padding: 22px 20px 24px; border-radius: 20px; border: 1px solid var(--hair); background: linear-gradient(160deg, rgba(237, 230, 223, 0.05), rgba(11, 7, 8, 0.55) 50%); }
+.keep-list h3 { font-size: 19px; line-height: 1.15; letter-spacing: -0.01em; }
+.keep-list p { margin-top: 10px; font-size: 15.5px; color: var(--bone-soft); }
+@media (max-width: 1100px) { .keep-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .keep-list { grid-template-columns: 1fr; } }
+
 .fine { padding: clamp(80px, 10vw, 140px) var(--gutter); border-top: 1px solid var(--hair); }
 .fine h2 { font-size: clamp(30px, 3.6vw, 52px); }
 .fine ul { list-style: none; margin: 40px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 48px; }

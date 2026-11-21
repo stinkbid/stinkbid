@@ -40,14 +40,14 @@
           <p>A stink bid is a buy order parked far under the price. On STINKBID it is a signature: it waits off-chain, costs nothing, and turns into one on-chain swap only when the market reaches it.</p>
         </div>
         <nav class="toc" aria-label="On this page">
-          <a href="#flow">The flow</a><a href="#order">The signed order</a><a href="#fill">What a fill checks</a><a href="#cancel">Cancelling</a><a href="#keeper">The keeper</a><a href="#filler">Run your own filler</a><a href="#limits">Beta limits</a><a href="#api">API</a>
+          <a href="#flow">The flow</a><a href="#order">The signed order</a><a href="#fill">What a fill checks</a><a href="#cancel">Cancelling</a><a href="#conditions">Conditions and ladders</a><a href="#keeper">The keeper</a><a href="#filler">Run your own filler</a><a href="#limits">Beta limits</a><a href="#api">API</a>
         </nav>
         <div class="prose">
           <h2 id="flow">The flow</h2>
           <ol>
             <li><strong>Approve once.</strong> You approve USDG to <a href="/contracts">Permit2</a>, the Uniswap signature-transfer contract. The app approves exactly the total of your open bids, not an unlimited amount.</li>
             <li><strong>Sign the slip.</strong> Stock, size in USDG, how far under the price, expiry. Your wallet shows it as an EIP-712 message with spender StinkBid and token USDG. No transaction, no gas.</li>
-            <li><strong>Wait.</strong> Every minute the keeper asks the Uniswap quoter what your USDG would buy right now.</li>
+            <li><strong>Wait.</strong> About every 10 seconds the keeper asks the Uniswap quoter what your USDG would buy right now.</li>
             <li><strong>Fill.</strong> When the quote reaches your minimum, the keeper calls <code>StinkBid.fill</code>. In one transaction Permit2 pulls your USDG, Uniswap swaps it and the stock token lands in your wallet. If the swap would pay less than your minimum, the whole transaction reverts and nothing moves.</li>
           </ol>
 
@@ -77,12 +77,20 @@ Order(address maker, address tokenOut, uint256 minAmountOut)</pre>
           <p>Cancel in the app. It sends one Permit2 transaction, <code>invalidateUnorderedNonces</code>, from your wallet. After it confirms, the signature is dead for everyone, including any other filler who copied it. Expired orders need no action.</p>
           <p>You can also cancel without this site, from the explorer's write tab on Permit2, or by lowering your USDG approval to Permit2, which stops every order at once.</p>
 
+          <h2 id="conditions">Conditions and ladders</h2>
+          <p>Two optional conditions decide <em>when</em> a bid may fill. They are kept by the API and the keeper, not by the contract, which enforces only the signed minimum. While a condition does not hold, the bid stays out of the public feed, so its signature is not published.</p>
+          <ul>
+            <li><strong>The official price confirms.</strong> At signing, the API reads the Chainlink price for the stock (the "Robinhood &lt;symbol&gt; / USD" feed on Robinhood Chain) and sets a level the same depth under it. The bid becomes active only when Chainlink is at or under that level and the pool pays your minimum. A dip that happens only in a thin pool fills nothing.</li>
+            <li><strong>Only while US markets are closed.</strong> Active outside the regular session: before 9:30 and from 16:00 New York time on weekdays, all weekend, and on NYSE holidays (13:00 close on early-close days).</li>
+          </ul>
+          <p>A <strong>ladder</strong> splits your size evenly over 3 or 5 bids at your depth, twice your depth, three times, and so on, capped at 50%. Each rung is its own signature and fills on its own. The app shows the Chainlink price, the pool's premium over it, and how far your size alone moves the pool.</p>
+
           <h2 id="keeper">The keeper</h2>
-          <p>A Cloudflare Worker runs every minute. It expires old orders, checks each maker's USDG balance, approval and nonce, gets one quote per order and simulates the fill before sending it. It pays the gas and takes no fee. Its run log is public on the <a href="/status">status page</a>.</p>
+          <p>A Cloudflare Worker runs every minute and checks five times in it, about every 10 seconds. It expires old orders, checks each maker's USDG balance, approval and nonce, gets one quote per order and simulates the fill before sending it. It pays the gas and takes no fee. Its run log is public on the <a href="/status">status page</a>.</p>
           <p>The keeper is a convenience, not a gatekeeper: it can fill an order only as signed, and it cannot change the price, size, token, recipient or expiry.</p>
 
           <h2 id="filler">Run your own filler</h2>
-          <p>Open orders, signatures included, are public at <code>GET /api/orders/open</code>. Anyone can fill them, which also means nobody has to trust our keeper being online.</p>
+          <p>Active orders, signatures included, are public at <code>GET /api/orders/open</code>. Anyone can fill them, which also means nobody has to trust our keeper being online.</p>
           <pre>// for each order from /api/orders/open
 stinkbid.fill(
   { maker, tokenOut: token_out, minAmountOut: min_amount_out },
