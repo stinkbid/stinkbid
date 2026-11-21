@@ -7,7 +7,7 @@ type S = {
   now: number;
   chain: { block: number | null };
   contract: { address: string; deployed: boolean | null };
-  keeper: { address: string | null; balanceWei: string | null; lastRun: Run | null; lastHour: { runs: number; errors: number | null; filled: number | null } | null };
+  keeper: { address: string | null; lastRun: Run | null; lastHour: { runs: number; errors: number | null; filled: number | null } | null };
   orders: { open: number | null; filled: number | null; filled_24h: number | null } | null;
 };
 
@@ -24,8 +24,8 @@ async function tick() {
   }
   const s = r.data;
   const d = s.contract.deployed;
-  set("t-contract", `${dot(d ? "ok" : "warn")}${d ? "Deployed" : d === false ? "Not deployed" : "Unknown"}`);
-  set("t-contract-s", `<a href="${explorerAddr(s.contract.address)}" target="_blank" rel="noopener">${s.contract.address.slice(0, 10)}…</a>`);
+  set("t-contract", `${dot(d ? "ok" : "warn")}${d ? "Live" : d === false ? "Not deployed" : "Unknown"}`);
+  set("t-contract-s", `Code on Robinhood Chain at <a href="${explorerAddr(s.contract.address)}" target="_blank" rel="noopener">${s.contract.address.slice(0, 6)}…${s.contract.address.slice(-4)}</a>`);
 
   const run = s.keeper.lastRun;
   const age = run ? s.now - run.finished_at : null;
@@ -36,15 +36,6 @@ async function tick() {
   set("t-block", s.chain.block ? s.chain.block.toLocaleString("en-US") : "–");
   set("t-block-s", run?.block ? `Keeper saw ${run.block.toLocaleString("en-US")}` : "");
 
-  if (s.keeper.address && s.keeper.balanceWei) {
-    const eth = Number(s.keeper.balanceWei) / 1e18;
-    set("t-gas", `${dot(eth > 0.0002 ? "ok" : eth > 0.00005 ? "warn" : "bad")}${eth.toFixed(5)} ETH`);
-    set("t-gas-s", `<a href="${explorerAddr(s.keeper.address)}" target="_blank" rel="noopener">${s.keeper.address.slice(0, 10)}…</a>`);
-  } else {
-    set("t-gas", "–");
-    set("t-gas-s", "Keeper wallet not set");
-  }
-
   set("t-open", String(s.orders?.open ?? 0));
   set("t-fills", String(s.orders?.filled_24h ?? 0));
   set("t-fills-s", `${s.orders?.filled ?? 0} all time`);
@@ -53,6 +44,8 @@ async function tick() {
   set("t-err", run?.error ? `${dot("warn")}Yes` : `${dot("ok")}None`);
   set("t-err-s", run?.error ? run.error.replace(/</g, "&lt;").slice(0, 120) : "on the last run");
   set("t-updated", `Updated ${new Date().toLocaleTimeString("en-GB")}.`);
+  const bar = document.getElementById("t-bar");
+  if (bar) { bar.style.animation = "none"; void bar.offsetWidth; bar.style.animation = ""; }
 }
 
 tick();
