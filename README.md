@@ -4,7 +4,7 @@
 
 Stink bids for tokenized stocks on Robinhood Chain. You sign a USDG buy order far under the price. It waits off-chain, costs nothing, and becomes one on-chain swap when the market reaches it. Your USDG stays in your wallet until then.
 
-Site: https://stinkbid.pro · App: https://stinkbid.pro/app · Docs: https://stinkbid.pro/docs · Status: https://stinkbid.pro/status
+Site: https://stinkbid.pro · App: https://stinkbid.pro/app · Docs: https://stinkbid.pro/docs · Status: https://stinkbid.pro/status · [Changelog](CHANGELOG.md)
 
 > **Not audited.** Tested as described below. During the beta the API caps orders at 100 USDG.
 
