@@ -35,6 +35,26 @@ export const LIMITS = {
   maxDepthBps: 5000,
 } as const;
 
+/**
+ * What holding $STINKBID does: bigger bids and more of them. Read from the wallet's on-chain balance when an
+ * order is posted, and public at GET /api/limits?address=. The contract has no limits of its own.
+ */
+export const TIERS = [
+  { name: "Base", minTokens: 0, maxUsdg: LIMITS.maxUsdg, maxOpen: LIMITS.maxOpenPerMaker },
+  { name: "Holder", minTokens: 1_000_000, maxUsdg: 500, maxOpen: 25 },
+  { name: "Large holder", minTokens: 5_000_000, maxUsdg: 2_000, maxOpen: 50 },
+] as const;
+export type Tier = (typeof TIERS)[number];
+/** The largest bid any tier allows: the ceiling for quotes. */
+export const MAX_USDG_ANY = TIERS[TIERS.length - 1].maxUsdg;
+/** Highest tier whose threshold `balance` (whole tokens, 18 decimals) reaches. */
+export function tierFor(balance: bigint, decimals = 18): Tier {
+  const whole = balance / 10n ** BigInt(decimals);
+  let t: Tier = TIERS[0];
+  for (const x of TIERS) if (whole >= BigInt(x.minTokens)) t = x;
+  return t;
+}
+
 export const pathFor = (m: Market): Hex => encodePacked(["address", "uint24", "address"], [ADDR.usdg, m.fee, m.token]);
 
 /** Tokens the order must receive at least, for a bid `depthBps` under the price implied by `quoteOut`. */

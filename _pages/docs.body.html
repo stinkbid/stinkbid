@@ -78,12 +78,14 @@ stinkbid.fill(
             <tr><th>Markets</th><td>10 stock tokens with deep USDG pools, listed on <a href="/contracts">Contracts</a></td></tr>
           </table>
           <p>The limits live in the API, not in the contract. They are there while the contract is new and unaudited.</p>
+          <!-- token-tiers -->
 
           <h2 id="api">API</h2>
           <table>
             <tr><th><code>GET /api/markets</code></th><td>Markets, pool, price for a 100 USDG buy, beta limits</td></tr>
             <tr><th><code>GET /api/quote?symbol=&amp;amount=</code></th><td>Uniswap quote for a size</td></tr>
             <tr><th><code>POST /api/orders</code></th><td>Submit a signed order (checked: signature, balance, approval, nonce)</td></tr>
+            <tr><th><code>GET /api/limits?address=</code></th><td>A wallet's size and open-bid limits, no sign-in</td></tr>
             <tr><th><code>GET /api/orders?maker=</code></th><td>A wallet's orders</td></tr>
             <tr><th><code>GET /api/orders/open</code></th><td>Every open order with signature, for fillers</td></tr>
             <tr><th><code>GET /api/book</code></th><td>Open bids and recent fills per market, no addresses</td></tr>

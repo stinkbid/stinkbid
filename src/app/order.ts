@@ -46,6 +46,9 @@ const state = {
   quote: null as Quote | null,
   bids: [] as Bid[],
   busy: false,
+  // This wallet's limits from its $STINKBID balance (GET /api/limits); Base until a wallet is connected.
+  maxUsdg: LIMITS.maxUsdg as number,
+  tier: "Base",
 };
 
 const usd = (n: number) => (n >= 1000 ? n.toLocaleString("en-US", { maximumFractionDigits: 0 }) : n.toLocaleString("en-US", { maximumFractionDigits: 2, minimumFractionDigits: 2 }));
@@ -67,7 +70,7 @@ function rungsFor(size: bigint, depth: number, n: number) {
 const market = () => marketBySymbol(marketSel.value)!;
 const sizeUnits = () => {
   const n = Number(sizeIn.value);
-  return n >= LIMITS.minUsdg && n <= LIMITS.maxUsdg ? parseUnits(String(n), USDG_DECIMALS) : null;
+  return n >= LIMITS.minUsdg && n <= state.maxUsdg ? parseUnits(String(n), USDG_DECIMALS) : null;
 };
 
 function say(text: string, kind: "" | "err" | "ok" = "") {
@@ -105,7 +108,7 @@ async function refreshQuote() {
   const amount = Number(sizeIn.value);
   const listed = state.markets.find((x) => x.symbol === m.symbol);
   $("market-price").textContent = listed?.price ? `Now about ${usd(listed.price)} USDG per ${m.symbol} on Uniswap.` : "No price from the pool right now.";
-  if (!(amount >= LIMITS.minUsdg && amount <= LIMITS.maxUsdg)) {
+  if (!(amount >= LIMITS.minUsdg && amount <= state.maxUsdg)) {
     state.quoteOut = null;
     render();
     return;
@@ -158,7 +161,7 @@ function render() {
     action.disabled = false;
     if (!state.account) action.textContent = "Connect wallet";
     else if (!state.deployed) { action.textContent = "Signing opens when the contract is live"; action.disabled = true; }
-    else if (!size) { action.textContent = `Enter ${LIMITS.minUsdg} to ${LIMITS.maxUsdg} USDG`; action.disabled = true; }
+    else if (!size) { action.textContent = `Enter ${LIMITS.minUsdg} to ${state.maxUsdg} USDG`; action.disabled = true; }
     else if (!rungsOk) { action.textContent = `At least ${LIMITS.minUsdg * n} USDG for ${n} bids`; action.disabled = true; }
     else action.textContent = n === 1 ? "Sign the stink bid" : `Sign ${n} stink bids`;
   }
@@ -176,11 +179,29 @@ async function connect() {
     state.account = a[0] ? getAddress(a[0]) : null;
     showWho();
     void loadBids();
+    void loadLimits();
     render();
   });
   say("");
   await ensureChain();
-  await loadBids();
+  await Promise.all([loadBids(), loadLimits()]);
+}
+
+type Limits = { token: string | null; tier: string; maxUsdg: number; maxOpen: number };
+/** Reads this wallet's bid limits; holding $STINKBID raises them. Base when no wallet or no answer. */
+async function loadLimits() {
+  const help = $("size-help");
+  if (!state.account) {
+    state.maxUsdg = LIMITS.maxUsdg;
+    state.tier = "Base";
+  } else {
+    const r = await get<Limits>(`/api/limits?address=${state.account}`);
+    state.maxUsdg = r.ok ? r.data.maxUsdg : LIMITS.maxUsdg;
+    state.tier = r.ok ? r.data.tier : "Base";
+  }
+  sizeIn.max = String(state.maxUsdg);
+  help.textContent = state.tier === "Base" ? `${LIMITS.minUsdg} to ${state.maxUsdg} USDG per order during the beta.` : `${LIMITS.minUsdg} to ${state.maxUsdg} USDG per order: ${state.tier} limit from your $STINKBID balance.`;
+  await refreshQuote();
 }
 
 function showWho() {

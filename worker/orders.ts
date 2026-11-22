@@ -1,13 +1,15 @@
 import { Hono } from "hono";
 import { getAddress, isAddress, isHex, recoverTypedDataAddress, type Address, type Hex } from "viem";
 import {
-  ADDR, FEED_DECIMALS, LIMITS, MARKETS, SESSIONS, TRIGGERS, depthOf, marketBySymbol, oracleLevelFor, orderId, pathFor, permitDomain, permitMessage, permitTypes,
+  ADDR, FEED_DECIMALS, LIMITS, MARKETS, MAX_USDG_ANY, TIERS, SESSIONS, TRIGGERS, depthOf, marketBySymbol, oracleLevelFor, orderId, pathFor, permitDomain, permitMessage, permitTypes,
   usMarketOpen, USDG_DECIMALS, type Session, type Trigger,
 } from "../shared/config";
 import { isActive, isDeployed, makerStates, marketQuotes, oraclePrices, quoteMany } from "./market";
 import { overLimit } from "./ratelimit";
 import { clientIp, hashIp, originAllowed } from "./request";
 import { rhClient } from "./rh";
+import { limitsFor } from "./tiers";
+import { TOKEN } from "../shared/token";
 import type { AppEnv } from "./session";
 
 export const orders = new Hono<AppEnv>();
@@ -33,14 +35,14 @@ orders.get("/markets", async (c) => {
   const client = rhClient(c.env.RPC_URL);
   const [quotes, deployed] = await Promise.all([marketQuotes(client), isDeployed(client).catch(() => false)]);
   c.header("Cache-Control", "public, max-age=15");
-  return c.json({ deployed, limits: LIMITS, markets: quotes });
+  return c.json({ deployed, limits: LIMITS, tiers: TIERS, token: TOKEN, markets: quotes });
 });
 
 orders.get("/quote", async (c) => {
   const m = marketBySymbol(c.req.query("symbol") ?? "");
   const amount = Number(c.req.query("amount"));
   if (!m) return c.json({ error: "unknown_market" }, 400);
-  if (!(amount >= LIMITS.minUsdg && amount <= LIMITS.maxUsdg)) return c.json({ error: "amount_out_of_range" }, 400);
+  if (!(amount >= LIMITS.minUsdg && amount <= MAX_USDG_ANY)) return c.json({ error: "amount_out_of_range" }, 400);
   const amountIn = BigInt(Math.round(amount * 10 ** USDG_DECIMALS));
   const client = rhClient(c.env.RPC_URL);
   // A 1 USDG quote next to the real size shows how far this size alone moves the pool.
@@ -85,7 +87,7 @@ orders.post("/orders", async (c) => {
   const session: Session = SESSIONS.includes(b.session) ? b.session : "any";
   const ladder = typeof b.ladder === "string" && /^[0-9a-f]{8,32}$/.test(b.ladder) ? b.ladder : null;
   const unit = 10n ** BigInt(USDG_DECIMALS);
-  if (amountIn < BigInt(LIMITS.minUsdg) * unit || amountIn > BigInt(LIMITS.maxUsdg) * unit) return c.json({ error: "amount_out_of_range" }, 400);
+  if (amountIn < BigInt(LIMITS.minUsdg) * unit || amountIn > BigInt(MAX_USDG_ANY) * unit) return c.json({ error: "amount_out_of_range" }, 400);
   if (minAmountOut <= 0n || minAmountOut > UINT256_MAX || nonce < 0n || nonce > UINT256_MAX) return c.json({ error: "bad_order" }, 400);
   if (deadline < BigInt(now() + 600) || deadline > BigInt(now() + LIMITS.maxDays * 86400 + 3600)) return c.json({ error: "bad_expiry" }, 400);
 
@@ -101,8 +103,12 @@ orders.post("/orders", async (c) => {
     if (!ok) return c.json({ error: "bad_signature" }, 400);
   }
 
+  // Bigger bids and more open bids come from the wallet's $STINKBID balance, read now (worker/tiers.ts).
+  const limits = await limitsFor(client, maker).catch(() => null);
+  if (!limits) return c.json({ error: "chain_unavailable" }, 503);
+  if (amountIn > BigInt(limits.maxUsdg) * unit) return c.json({ error: "over_tier_limit", detail: String(limits.maxUsdg) }, 400);
   const open = await c.env.DB.prepare("SELECT COUNT(*) AS n FROM orders WHERE maker = ?1 AND status = 'open'").bind(maker).first<{ n: number }>();
-  if ((open?.n ?? 0) >= LIMITS.maxOpenPerMaker) return c.json({ error: "too_many_open" }, 400);
+  if ((open?.n ?? 0) >= limits.maxOpen) return c.json({ error: "too_many_open", detail: String(limits.maxOpen) }, 400);
 
   const [deployed, [quote], [state], [feed]] = await Promise.all([
     isDeployed(client),
@@ -135,6 +141,16 @@ orders.post("/orders", async (c) => {
     .run();
   if (!res.meta.changes) return c.json({ error: "duplicate" }, 409);
   return c.json({ id, depthBps: depth }, 201);
+});
+
+/** A wallet's bid limits from its $STINKBID balance. Public: no wallet connection or signature needed. */
+orders.get("/limits", async (c) => {
+  const a = c.req.query("address") ?? "";
+  if (!isAddress(a)) return c.json({ error: "invalid_address" }, 400);
+  const limits = await limitsFor(rhClient(c.env.RPC_URL), getAddress(a) as Address).catch(() => null);
+  if (!limits) return c.json({ error: "chain_unavailable" }, 503);
+  c.header("Cache-Control", "public, max-age=30");
+  return c.json(limits);
 });
 
 orders.get("/orders", async (c) => {
