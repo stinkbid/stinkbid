@@ -5,9 +5,9 @@ Bug reports and pull requests are welcome. For a security issue, don't open an i
 ## Before a pull request
 
 ```bash
-cd contracts && forge test && slither .     # contract
-npm run typecheck && npm run build          # site, API and keeper
-npm run test:e2e                            # full flow on a local fork (needs anvil)
+cd contracts && forge test && slither .         # contract
+npm run typecheck && npm test && npm run build   # site, API and keeper
+npm run test:e2e                                # full flow on a local fork (needs anvil)
 ```
 
 CI runs the same checks, plus the fork tests against Robinhood Chain.

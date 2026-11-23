@@ -35,6 +35,7 @@ StinkBid has no owner, no fee, no pause and no upgrade path. Between transaction
 cd contracts
 forge test                                                   # unit, fuzz, invariant
 FORK_RPC=https://robinhood.drpc.org forge test --match-contract Fork
+cd .. && npm test                                            # TypeScript unit tests (vitest)
 ```
 
 | Suite | What it covers |
@@ -43,6 +44,7 @@ FORK_RPC=https://robinhood.drpc.org forge test --match-contract Fork
 | Fuzz (2 × 1,000 runs) | fills exactly when the swap pays the minimum; no foreign key ever spends |
 | Invariant (4 × 256 runs × 64 calls) | the contract holds nothing; USDG leaves makers only through fills; makers always get their price; no altered order fills |
 | Fork (2) | real Permit2, USDG, SwapRouter02 and the NVDA/USDG pool: a bid at the market fills, a −15% bid waits |
+| TypeScript unit (`npm test`) | `shared/config.ts`: minimum out for a depth and back, swap path bytes and fee tiers, Permit2 nonce word and bit, order ids |
 | End to end (`npm run test:e2e`) | a local fork running the real site API and keeper: forged order rejected → bid placed → oracle-confirmed bid placed → pool falls → keeper fills the pool bid, the oracle bid waits unpublished → maker paid at least the minimum → cancel → spent nonce refused (14 checks) |
 
 Coverage of `StinkBid.sol`: 96% of lines. Slither runs in CI; [contracts/ANALYSIS.md](contracts/ANALYSIS.md) explains each excluded detector. A fill on the NVDA pool costs about 296k gas.

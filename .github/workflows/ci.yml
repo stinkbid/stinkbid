@@ -50,4 +50,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
+      - name: Unit tests (shared config)
+        run: npm test
       - run: npm run build

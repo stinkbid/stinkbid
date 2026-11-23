@@ -15,7 +15,8 @@
     "test:contracts": "cd contracts && forge test",
     "test:fork": "cd contracts && FORK_RPC=${FORK_RPC:-https://robinhood.drpc.org} forge test --match-contract Fork",
     "test:e2e": "sh scripts/e2e-fork.sh",
-    "pages": "python3 _pages/shell.py"
+    "pages": "python3 _pages/shell.py",
+    "test": "vitest run"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.3.0",
@@ -29,6 +30,7 @@
     "@cloudflare/workers-types": "^5.20260922.1",
     "typescript": "^7.0.2",
     "vite": "^8.3.0",
+    "vitest": "^5.1.0",
     "wrangler": "^4.136.3"
   },
   "allowScripts": {
