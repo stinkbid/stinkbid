@@ -29,6 +29,15 @@ Anyone can call `fill`. Active orders, signatures included, are public at `GET /
 
 StinkBid has no owner, no fee, no pause and no upgrade path. Between transactions it holds nothing. Markets and pools are listed in [`shared/config.ts`](shared/config.ts) and at https://stinkbid.pro/contracts.
 
+## Mainnet fills
+
+Real stink bids filled by the contract above, 1 USDG each, signed 1% under the pool price. Every fill is also in the public book: `GET https://stinkbid.pro/api/book` (`fills[].fill_tx`).
+
+| Stock | Filled | Paid | Received | Block | Transaction |
+|---|---|---|---|---|---|
+| NVDA | 23 November 2026, 02:21 UTC | 1 USDG | 0.007594 NVDA | 121,071,495 | [`0x556b9a19…efa992`](https://robinhoodchain.blockscout.com/tx/0x556b9a19a82bcd480a85b59380ac7811f7106b2c90cc9e2bbaea0180f8efa992) |
+| MSFT | 23 November 2026, 20:55 UTC | 1 USDG | 0.002015 MSFT | 121,705,398 | [`0xcd878551…72e52a`](https://robinhoodchain.blockscout.com/tx/0xcd878551a44ac86ac581c1852734e256adedc21a96ef0500b89dfedd6972e52a) |
+
 ## Tests
 
 ```bash
