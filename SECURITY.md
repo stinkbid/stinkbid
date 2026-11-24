@@ -1,6 +1,6 @@
 # Security
 
-StinkBid has **not been audited**. During the beta the API caps orders at 100 USDG.
+StinkBid has **not been audited**. During the beta the API caps orders at 100 USDG per wallet, or 500 and 2,000 USDG for wallets holding 1M and 5M $STINKBID.
 
 ## What the contract guarantees
 
@@ -31,6 +31,19 @@ The contract does not trust the amount a token or the router says was sent. It m
 - A fill is never guaranteed: short wicks, thin liquidity, gas or RPC outages.
 - The USDG approval sits on Permit2, so any Permit2 signature the maker gives, on any site, can use it.
 - Issuers of USDG and of the stock tokens can restrict transfers, which makes fills revert.
+
+## Public review
+
+Instead of an audit badge, anyone can review StinkBid in public: [issue #4](https://github.com/stinkbid/stinkbid/issues/4).
+
+- **Scope:** `contracts/src/StinkBid.sol` (deployed at `0x362917b506695C2096e361Fc032D4315f2439760`, exact match on Sourcify), then the keeper and API in `worker/`.
+- **Most wanted:** USDG leaving a wallet without a valid signed order; a fill paying less than `minAmountOut`; a signature used twice, after cancel or after its deadline; tokens left in the contract; ways to block other makers' fills.
+- **Credit:** every confirmed finding is listed below with the reviewer's name. There is no paid bounty at the moment.
+- **Fixes:** the contract cannot be upgraded. A real fix ships as a new contract at a new address, announced on stinkbid.pro/official first.
+
+### Reviewers
+
+None yet. Be the one.
 
 ## Reporting
 
