@@ -6,6 +6,7 @@ import { waitlist } from "./waitlist";
 import { orders } from "./orders";
 import { status } from "./status";
 import { runKeeper } from "./keeper";
+import { mcp } from "./mcp";
 
 const api = new Hono<AppEnv>();
 
@@ -22,6 +23,7 @@ api.get("/health", async (c) => {
 
 api.route("/waitlist", waitlist);
 api.route("/auth", auth);
+api.route("/mcp", mcp);
 api.route("/", orders);
 api.route("/", status);
 

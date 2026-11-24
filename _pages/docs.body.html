@@ -8,7 +8,7 @@
           <p>A stink bid is a buy order parked far under the price. On STINKBID it is a signature: it waits off-chain, costs nothing, and turns into one on-chain swap only when the market reaches it.</p>
         </div>
         <nav class="toc" aria-label="On this page">
-          <a href="#flow">The flow</a><a href="#order">The signed order</a><a href="#fill">What a fill checks</a><a href="#cancel">Cancelling</a><a href="#conditions">Conditions and ladders</a><a href="#keeper">The keeper</a><a href="#filler">Run your own filler</a><a href="#limits">Beta limits</a><a href="#api">API</a>
+          <a href="#flow">The flow</a><a href="#order">The signed order</a><a href="#fill">What a fill checks</a><a href="#cancel">Cancelling</a><a href="#conditions">Conditions and ladders</a><a href="#keeper">The keeper</a><a href="#agents">For agents</a><a href="#filler">Run your own filler</a><a href="#limits">Beta limits</a><a href="#api">API</a>
         </nav>
         <div class="prose">
           <h2 id="flow">The flow</h2>
@@ -85,6 +85,10 @@ stinkbid.fill(
             <tr><th>Holder</th><td>1,000,000 STINKBID or more</td><td>Up to 500 USDG per order, 25 open bids</td></tr>
             <tr><th>Large holder</th><td>5,000,000 STINKBID or more</td><td>Up to 2,000 USDG per order, 50 open bids</td></tr>
           </table>
+
+          <h2 id="agents">For agents (MCP)</h2>
+          <p>AI agents can place stink bids through an MCP server at <code>https://stinkbid.pro/api/mcp</code> (Streamable HTTP, no sign-in). It builds the EIP-712 data to sign; the agent signs with its own wallet and submits. The server never sees or needs a key. Tools: <code>list_markets</code>, <code>get_quote</code>, <code>get_limits</code>, <code>prepare_stink_bid</code>, <code>submit_stink_bid</code>, <code>get_my_bids</code>, <code>get_book</code>, <code>prepare_cancel</code>.</p>
+          <p>Claude Code: <code>claude mcp add --transport http stinkbid https://stinkbid.pro/api/mcp</code>. The full flow and a signing example are in <a href="/skill.md"><code>/skill.md</code></a>; a short index is in <a href="/llms.txt"><code>/llms.txt</code></a>.</p>
 
           <h2 id="api">API</h2>
           <table>

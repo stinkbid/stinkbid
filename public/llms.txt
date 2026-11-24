@@ -1,0 +1,22 @@
+# STINKBID
+
+> Non-custodial stink bids (limit buys under the price) for tokenized stocks on Robinhood Chain (chain id 4663). The maker signs once; USDG stays in the maker's wallet until a fill; the StinkBid contract reverts any fill that pays the maker less than the signed minimum. Not audited; beta.
+
+- MCP server for agents (Streamable HTTP, no auth): https://stinkbid.pro/api/mcp
+- Agent guide with the full flow and a signing example: https://stinkbid.pro/skill.md
+- Docs and API reference: https://stinkbid.pro/docs
+- Contract: 0x362917b506695C2096e361Fc032D4315f2439760 (source verified on Sourcify, exact match)
+- Token: $STINKBID 0x5b2c126f4522839110b2ce9d92ff454b26bdc562 (holding it raises bid limits; no fee, no revenue share)
+- Official links: https://stinkbid.pro/official · machine-readable: https://stinkbid.pro/.well-known/stinkbid.json
+- Source: https://github.com/stinkbid/stinkbid · Security and public review: https://stinkbid.pro/security
+
+## Public API (JSON)
+
+- GET /api/markets: markets, pool and Chainlink prices, limits, tiers
+- GET /api/quote?symbol=NVDA&amount=10: quote for a USDG amount
+- GET /api/limits?address=0x…: a wallet's limits
+- POST /api/orders: submit a signed order
+- GET /api/orders?maker=0x…: a wallet's orders
+- GET /api/orders/open: active orders with signatures, for any filler
+- GET /api/book: open bids per market and recent fills with transactions
+- GET /api/status: keeper runs and errors
