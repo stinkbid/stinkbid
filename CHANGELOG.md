@@ -2,6 +2,27 @@
 
 What changed on STINKBID, by date. The same list is at https://stinkbid.pro/changelog.
 
+## v0.2.0 (25 November 2026)
+
+Agents can place stink bids; the token turns on holder limits; the review is public.
+
+### 25 November 2026
+
+- MCP server at `https://stinkbid.pro/api/mcp` (Streamable HTTP): `list_markets`, `get_quote`, `get_limits`, `prepare_stink_bid`, `submit_stink_bid`, `get_my_bids`, `get_book`, `prepare_cancel`. The agent signs with its own wallet; the server never holds a key.
+- Agent guide at [`/skill.md`](https://stinkbid.pro/skill.md) with a viem signing example, and [`/llms.txt`](https://stinkbid.pro/llms.txt).
+- Bids from holder wallets filled on mainnet: 10 USDG on NVDA ([tx](https://robinhoodchain.blockscout.com/tx/0x064e4bb64c6588bf04760a4738ffea11fc05959995fd500875b8e06eed9b4f0e)) and 5 USDG on NVDA from a ladder ([tx](https://robinhoodchain.blockscout.com/tx/0x3baaa6ffc69fc174917bfe2fdf70bbccff785753fbbb38357a8252b172affaf5)).
+- Public review opened: [issue #4](https://github.com/stinkbid/stinkbid/issues/4), with scope and credit in SECURITY.md.
+
+### 24 November 2026
+
+- $STINKBID token at `0x5b2c126f4522839110b2ce9d92ff454b26bdc562`. Holding 1M raises a wallet's limit to 500 USDG per bid and 25 open bids; 5M to 2,000 USDG and 50 open. Read from the balance at order time; no fee, no revenue share.
+- The token address is on the home page (copy on click), /official, /docs, the README and `/.well-known/stinkbid.json`.
+
+### 23 November 2026
+
+- Two 1 USDG test fills on mainnet (NVDA and MSFT), listed in the README with their transactions.
+- Unit tests for the shared config and for order validation run in CI.
+
 ## v0.1.0 (22 November 2026)
 
 First tagged version: the contract deployed on Robinhood Chain, the order app, the order API, the keeper and the site.
