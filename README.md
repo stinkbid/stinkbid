@@ -22,6 +22,7 @@ Anyone can call `fill`. Active orders, signatures included, are public at `GET /
 | | Address |
 |---|---|
 | StinkBid | [`0x362917b506695C2096e361Fc032D4315f2439760`](https://robinhoodchain.blockscout.com/address/0x362917b506695C2096e361Fc032D4315f2439760) · source [verified on Sourcify](https://repo.sourcify.dev/4663/0x362917b506695C2096e361Fc032D4315f2439760) (exact match) · deployed in block 119,855,305 via CREATE2, salt `keccak256("stinkbid.v1")` |
+| $STINKBID (token) | [`0x5b2c126f4522839110b2ce9d92ff454b26bdc562`](https://robinhoodchain.blockscout.com/token/0x5b2c126f4522839110b2ce9d92ff454b26bdc562) · hold it to bid bigger (higher size limits and more open bids, read from your balance); no revenue share, no fee |
 | Permit2 | `0x000000000022D473030F116dDEE9F6B43aC78BA3` |
 | USDG | `0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168` |
 | SwapRouter02 | `0xCaf681a66D020601342297493863E78C959E5cb2` |

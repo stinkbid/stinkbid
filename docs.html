@@ -110,7 +110,13 @@ stinkbid.fill(
             <tr><th>Markets</th><td>10 stock tokens with deep USDG pools, listed on <a href="/contracts">Contracts</a></td></tr>
           </table>
           <p>The limits live in the API, not in the contract. They are there while the contract is new and unaudited.</p>
-          <!-- token-tiers -->
+          <h3 id="holder-limits">Holder limits</h3>
+          <p>Hold $STINKBID to bid bigger. When you post an order, the API reads your token balance on chain and applies the highest tier it reaches. Check any wallet without signing in at <code>GET /api/limits?address=</code>. Token: <code>0x5b2c126f4522839110b2ce9d92ff454b26bdc562</code>.</p>
+          <table>
+            <tr><th>Base</th><td>Any wallet</td><td>Up to 100 USDG per order, 10 open bids</td></tr>
+            <tr><th>Holder</th><td>1,000,000 STINKBID or more</td><td>Up to 500 USDG per order, 25 open bids</td></tr>
+            <tr><th>Large holder</th><td>5,000,000 STINKBID or more</td><td>Up to 2,000 USDG per order, 50 open bids</td></tr>
+          </table>
 
           <h2 id="api">API</h2>
           <table>

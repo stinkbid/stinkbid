@@ -99,6 +99,12 @@ h1 { display: grid; margin-top: 26px; font-size: clamp(54px, 9vw, 148px); }
 h1 span:last-child { padding-left: 0.62em; }
 .lede { margin-top: 30px; max-width: 30em; color: var(--bone-soft); font-size: 18px; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+/* Token address in the hero: short form, the click copies the full address. */
+.ca-chip { display: inline-flex; align-items: center; gap: 12px; min-height: 40px; margin-top: 22px; padding: 0 6px 0 16px; border-radius: 999px; border: 1px solid var(--hair); background: rgba(11, 7, 8, 0.45); color: var(--bone-soft); font: 500 14px var(--mono); cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+.ca-chip:hover { border-color: var(--hair-strong); color: var(--bone); }
+.ca-v { font: 400 13.5px var(--code); color: var(--bone); letter-spacing: 0.01em; }
+.ca-s { display: inline-flex; align-items: center; min-height: 28px; padding: 0 12px; border-radius: 999px; background: rgba(237, 230, 223, 0.08); color: var(--bone); font-size: 13px; }
+.ca-chip.is-copied .ca-s { background: var(--red); color: var(--void); }
 
 h2 { font-size: clamp(36px, 5.4vw, 84px); }
 

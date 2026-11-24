@@ -7,8 +7,33 @@
   },
   "deployTx": "0x690a9871e316bff9b0900c0a9d07b0328d827e3ccd8e2b9b32b057f70deba381",
   "sourceVerified": "https://repo.sourcify.dev/4663/0x362917b506695C2096e361Fc032D4315f2439760",
-  "token": null,
+  "token": {
+    "address": "0x5b2c126f4522839110b2ce9d92ff454b26bdc562",
+    "symbol": "STINKBID",
+    "role": "Hold $STINKBID to bid bigger: higher size limits and more open bids per wallet, checked from your on-chain balance.",
+    "tiers": [
+      {
+        "name": "Base",
+        "minTokens": 0,
+        "maxUsdg": 100,
+        "maxOpen": 10
+      },
+      {
+        "name": "Holder",
+        "minTokens": 1000000,
+        "maxUsdg": 500,
+        "maxOpen": 25
+      },
+      {
+        "name": "Large holder",
+        "minTokens": 5000000,
+        "maxUsdg": 2000,
+        "maxOpen": 50
+      }
+    ],
+    "lookup": "https://stinkbid.pro/api/limits?address="
+  },
   "x": "https://x.com/stinkbid_app",
   "source": "https://github.com/stinkbid/stinkbid",
-  "updated": "2026-11-21"
+  "updated": "2026-11-24"
 }

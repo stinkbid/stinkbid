@@ -2,6 +2,31 @@ import "./landing.css";
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+// Hero token chip: shows the short address, copies the full one.
+const caChip = document.querySelector(".ca-chip");
+caChip?.addEventListener("click", async () => {
+  const ca = caChip.dataset.ca;
+  let ok = false;
+  try {
+    await navigator.clipboard.writeText(ca);
+    ok = true;
+  } catch {
+    const t = Object.assign(document.createElement("textarea"), { value: ca });
+    document.body.append(t);
+    t.select();
+    ok = document.execCommand("copy");
+    t.remove();
+  }
+  const label = caChip.querySelector(".ca-s");
+  label.textContent = ok ? "Copied" : "Copy failed";
+  caChip.classList.toggle("is-copied", ok);
+  clearTimeout(caChip._t);
+  caChip._t = setTimeout(() => {
+    label.textContent = "Copy";
+    caChip.classList.remove("is-copied");
+  }, 1800);
+});
+
 // Header turns solid once the hero scrolls away; the hero image eases from a slight zoom as you scroll.
 const top = document.querySelector(".top");
 const hero = document.querySelector(".hero");
