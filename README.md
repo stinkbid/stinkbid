@@ -57,7 +57,7 @@ cd .. && npm test                                            # TypeScript unit t
 | TypeScript unit (`npm test`) | `shared/config.ts`: minimum out for a depth and back, swap path bytes and fee tiers, Permit2 nonce word and bit, order ids |
 | End to end (`npm run test:e2e`) | a local fork running the real site API and keeper: forged order rejected → bid placed → oracle-confirmed bid placed → pool falls → keeper fills the pool bid, the oracle bid waits unpublished → maker paid at least the minimum → cancel → spent nonce refused (14 checks) |
 
-Coverage of `StinkBid.sol`: 96% of lines. Slither runs in CI; [contracts/ANALYSIS.md](contracts/ANALYSIS.md) explains each excluded detector. A fill on the NVDA pool costs about 296k gas.
+Coverage of `StinkBid.sol`: 96% of lines. Slither runs in CI; [contracts/ANALYSIS.md](contracts/ANALYSIS.md) explains each excluded detector. Gitleaks scans the full git history for secrets in CI ([.gitleaks.toml](.gitleaks.toml) only allows public 20-byte addresses). A fill on the NVDA pool costs about 296k gas.
 
 ## Layout
 

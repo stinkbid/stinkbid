@@ -1,0 +1,13 @@
+# Secret scan config for CI (gitleaks, see .github/workflows/ci.yml).
+# Default rules, plus one allowlist: public 20-byte EVM addresses
+# (token, pool and contract addresses in shared/config.ts) match the
+# generic-api-key rule. Private keys are 32 bytes and are still caught.
+title = "stinkbid gitleaks config"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Public EVM addresses (0x + 40 hex)"
+regexTarget = "secret"
+regexes = ['''^0x[0-9a-fA-F]{40}$''']

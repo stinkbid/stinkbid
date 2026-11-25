@@ -10,7 +10,7 @@ npm run typecheck && npm test && npm run build   # site, API and keeper
 npm run test:e2e                                # full flow on a local fork (needs anvil)
 ```
 
-CI runs the same checks, plus the fork tests against Robinhood Chain.
+CI runs the same checks, plus the fork tests against Robinhood Chain and a gitleaks secret scan of the full history (`gitleaks git . --config .gitleaks.toml`). Never commit a key: local secrets go in `.dev.vars`, which is ignored.
 
 ## The deployed contract
 
