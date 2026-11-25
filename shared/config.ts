@@ -25,7 +25,7 @@ export const MARKETS: Market[] = [
 
 export const marketBySymbol = (s: string) => MARKETS.find((m) => m.symbol === s);
 
-/** Beta limits, enforced by the API (the contract itself has none). */
+/** Order limits, enforced by the API (the contract itself has none). */
 export const LIMITS = {
   minUsdg: 1,
   maxUsdg: 100,

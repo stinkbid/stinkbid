@@ -8,7 +8,7 @@
           <p>A stink bid is a buy order parked far under the price. On STINKBID it is a signature: it waits off-chain, costs nothing, and turns into one on-chain swap only when the market reaches it.</p>
         </div>
         <nav class="toc" aria-label="On this page">
-          <a href="#flow">The flow</a><a href="#order">The signed order</a><a href="#fill">What a fill checks</a><a href="#cancel">Cancelling</a><a href="#conditions">Conditions and ladders</a><a href="#keeper">The keeper</a><a href="#agents">For agents</a><a href="#filler">Run your own filler</a><a href="#limits">Beta limits</a><a href="#api">API</a>
+          <a href="#flow">The flow</a><a href="#order">The signed order</a><a href="#fill">What a fill checks</a><a href="#cancel">Cancelling</a><a href="#conditions">Conditions and ladders</a><a href="#keeper">The keeper</a><a href="#agents">For agents</a><a href="#filler">Run your own filler</a><a href="#limits">Order limits</a><a href="#api">API</a>
         </nav>
         <div class="prose">
           <h2 id="flow">The flow</h2>
@@ -68,7 +68,7 @@ stinkbid.fill(
 )</pre>
           <p>A filler can choose when to fill and through which pools. It can never pay you less than your minimum. If the market falls further than your bid, a filler may route so that you get close to the minimum; that is the price you set.</p>
 
-          <h2 id="limits">Beta limits</h2>
+          <h2 id="limits">Order limits</h2>
           <table>
             <tr><th>Size</th><td>1 to 100 USDG per order</td></tr>
             <tr><th>Open orders</th><td>Up to 10 per wallet</td></tr>
@@ -92,7 +92,7 @@ stinkbid.fill(
 
           <h2 id="api">API</h2>
           <table>
-            <tr><th><code>GET /api/markets</code></th><td>Markets, pool, price for a 100 USDG buy, beta limits</td></tr>
+            <tr><th><code>GET /api/markets</code></th><td>Markets, pool, price for a 100 USDG buy, order limits</td></tr>
             <tr><th><code>GET /api/quote?symbol=&amp;amount=</code></th><td>Uniswap quote for a size</td></tr>
             <tr><th><code>POST /api/orders</code></th><td>Submit a signed order (checked: signature, balance, approval, nonce)</td></tr>
             <tr><th><code>GET /api/limits?address=</code></th><td>A wallet's size and open-bid limits, no sign-in</td></tr>

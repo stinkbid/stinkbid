@@ -35,7 +35,7 @@
     <main id="main">
 <section class="page app" aria-labelledby="app-title">
         <div class="page-head">
-          <p class="kicker"><span class="tick" aria-hidden="true"></span>Beta · Robinhood Chain</p>
+          <p class="kicker"><span class="tick" aria-hidden="true"></span><span class="live"><span class="live-dot" aria-hidden="true"></span>Live on mainnet</span> · Robinhood Chain</p>
           <h1 id="app-title">Place a stink bid</h1>
           <p>Pick a stock, set how far under today's price you want to buy, and sign. Nothing leaves your wallet until the market reaches your level.</p>
         </div>
@@ -53,7 +53,7 @@
             <div class="slip-row">
               <label class="ctl-k" for="size">Size</label>
               <div class="field-unit"><input id="size" name="size" type="number" inputmode="decimal" min="1" max="100" step="1" value="25" aria-describedby="size-help" /><span>USDG</span></div>
-              <p class="slip-help" id="size-help">1 to 100 USDG per order during the beta.</p>
+              <p class="slip-help" id="size-help">1 to 100 USDG per order. Holding $STINKBID raises it.</p>
             </div>
 
             <div class="slip-row">
@@ -111,7 +111,7 @@
               <button type="button" class="btn" id="action">Connect wallet</button>
               <p class="slip-status" id="slip-status" role="status"></p>
             </div>
-            <p class="slip-fine">Signing does not move funds. The first order asks for one USDG approval to Permit2, the Uniswap contract that checks your signature. Fees: none during the beta; you pay the pool's swap fee inside the fill.</p>
+            <p class="slip-fine">Signing does not move funds. The first order asks for one USDG approval to Permit2, the Uniswap contract that checks your signature. Fees: STINKBID charges none; you pay the pool's swap fee inside the fill.</p>
           </form>
 
           <section class="mine" aria-labelledby="mine-title">

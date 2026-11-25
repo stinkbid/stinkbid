@@ -6,7 +6,7 @@ Stink bids for tokenized stocks on Robinhood Chain. You sign a USDG buy order fa
 
 Site: https://stinkbid.pro · App: https://stinkbid.pro/app · Docs: https://stinkbid.pro/docs · Status: https://stinkbid.pro/status · [Changelog](CHANGELOG.md)
 
-> **Not audited.** Tested as described below. During the beta the API caps orders at 100 USDG.
+> **Not audited.** Tested as described below. The API caps orders at 100 USDG.
 
 ## How it works
 
@@ -63,7 +63,7 @@ Coverage of `StinkBid.sol`: 96% of lines. Slither runs in CI; [contracts/ANALYSI
 
 ```
 contracts/          Foundry: StinkBid.sol, tests, CREATE2 deploy script
-shared/config.ts    addresses, markets, EIP-712 types, beta limits (site, API and keeper share it)
+shared/config.ts    addresses, markets, EIP-712 types, order limits (site, API and keeper share it)
 worker/             Cloudflare Worker (Hono): order API, keeper cron, status
   orders.ts         /api/markets, /quote, /orders, /orders/open, /book
   keeper.ts         every ~10 s: expire, check balance, approval, nonce and conditions, quote, simulate, fill

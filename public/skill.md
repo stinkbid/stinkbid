@@ -10,7 +10,7 @@ A stink bid is a buy order parked under today's price. The maker signs it once; 
 - Chain: Robinhood Chain, id 4663
 - Contract: `0x362917b506695C2096e361Fc032D4315f2439760` (source verified on Sourcify, exact match; no owner, no upgrade, no fee)
 - Spends: USDG `0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168` through Permit2 `0x000000000022D473030F116dDEE9F6B43aC78BA3`
-- Not audited. Beta. Use small amounts.
+- Not audited. Use small amounts.
 
 ## Connect
 

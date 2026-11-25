@@ -4,7 +4,7 @@ import { TOKEN, TOKEN_DECIMALS, TOKEN_SYMBOL } from "../shared/token";
 
 export type Limits = { token: Address | null; symbol: string; balance: string; tier: Tier["name"]; maxUsdg: number; maxOpen: number; tiers: typeof TIERS };
 
-/** A wallet's bid limits from its $STINKBID balance. With no token yet, everyone is Base. */
+/** A wallet's bid limits from its $STINKBID balance. With no $STINKBID, a wallet is Base. */
 export async function limitsFor(client: PublicClient, maker: Address): Promise<Limits> {
   let balance = 0n;
   if (TOKEN) balance = await client.readContract({ address: TOKEN, abi: erc20Abi, functionName: "balanceOf", args: [maker] });

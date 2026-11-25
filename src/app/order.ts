@@ -59,7 +59,7 @@ const rungCount = () => Number(pick("rungs", "1"));
 const fillOn = () => pick("fillon", "pool") as "pool" | "oracle";
 const session = () => pick("session", "any") as "any" | "closed";
 
-/** A ladder of n bids: the size split evenly (remainder on the deepest), at depth, 2×depth, … capped at the beta maximum. */
+/** A ladder of n bids: the size split evenly (remainder on the deepest), at depth, 2×depth, … capped at the maximum depth. */
 function rungsFor(size: bigint, depth: number, n: number) {
   const each = size / BigInt(n);
   return Array.from({ length: n }, (_, i) => ({
@@ -200,7 +200,7 @@ async function loadLimits() {
     state.tier = r.ok ? r.data.tier : "Base";
   }
   sizeIn.max = String(state.maxUsdg);
-  help.textContent = state.tier === "Base" ? `${LIMITS.minUsdg} to ${state.maxUsdg} USDG per order during the beta.` : `${LIMITS.minUsdg} to ${state.maxUsdg} USDG per order: ${state.tier} limit from your $STINKBID balance.`;
+  help.textContent = state.tier === "Base" ? `${LIMITS.minUsdg} to ${state.maxUsdg} USDG per order. Holding $STINKBID raises it.` : `${LIMITS.minUsdg} to ${state.maxUsdg} USDG per order: ${state.tier} limit from your $STINKBID balance.`;
   await refreshQuote();
 }
 

@@ -1,6 +1,6 @@
 # Security
 
-StinkBid has **not been audited**. During the beta the API caps orders at 100 USDG per wallet, or 500 and 2,000 USDG for wallets holding 1M and 5M $STINKBID.
+StinkBid has **not been audited**. The API caps orders at 100 USDG per wallet, or 500 and 2,000 USDG for wallets holding 1M and 5M $STINKBID.
 
 ## What the contract guarantees
 

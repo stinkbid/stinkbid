@@ -23,7 +23,7 @@ const symbols = MARKETS.map((m) => m.symbol);
 const TOOLS = [
   {
     name: "list_markets",
-    description: "The stock tokens STINKBID supports on Robinhood Chain, with the Uniswap pool price (USDG), the Chainlink price, the gap between them, and the beta limits and holder tiers.",
+    description: "The stock tokens STINKBID supports on Robinhood Chain, with the Uniswap pool price (USDG), the Chainlink price, the gap between them, and the order limits and holder tiers.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
   },
   {
