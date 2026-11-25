@@ -46,6 +46,13 @@ button:disabled { cursor: not-allowed; }
 
 .kicker { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--bone-soft); }
 .tick { width: 28px; height: 2px; background: var(--red); flex: none; }
+.live { display: inline-flex; align-items: center; gap: 7px; color: var(--bone); }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: #2ee66b; box-shadow: 0 0 0 0 rgba(46, 230, 107, .55); animation: live-pulse 1.6s ease-in-out infinite; }
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(46, 230, 107, .55); }
+  50% { opacity: .35; box-shadow: 0 0 0 5px rgba(46, 230, 107, 0); }
+}
+@media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }
 
 /* Buttons: pills, hairline, one filled (red = the bid). */
 .btn, .btn-line { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 20px; border-radius: 999px; text-decoration: none; font: 600 15px var(--mono); border: 1px solid transparent; transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s; }
