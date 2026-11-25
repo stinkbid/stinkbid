@@ -32,7 +32,7 @@ StinkBid has no owner, no fee, no pause and no upgrade path. Between transaction
 
 ## Mainnet fills
 
-Real stink bids filled by the contract above: 5 fills, 22 USDG, 3 maker wallets (2 of them not the team's). The maker signed the bid and received the stock token; the keeper only sent the transaction. Every fill, with its maker, is also in the public book: `GET https://stinkbid.pro/api/book` (`fills[].maker`, `fills[].fill_tx`).
+Real stink bids filled by the contract above: 6 fills, 27 USDG, 3 maker wallets (2 of them not the team's). The maker signed the bid and received the stock token; the keeper only sent the transaction. Every fill, with its maker, is also in the public book: `GET https://stinkbid.pro/api/book` (`fills[].maker`, `fills[].fill_tx`).
 
 | Stock | Filled | Maker | Paid | Received | Block | Transaction |
 |---|---|---|---|---|---|---|
@@ -41,6 +41,7 @@ Real stink bids filled by the contract above: 5 fills, 22 USDG, 3 maker wallets 
 | NVDA | 24 November 2026, 21:44 UTC | `0x5515…8e7a` | 10 USDG | 0.065037 NVDA | 122,548,346 | [`0x064e4bb6…9b4f0e`](https://robinhoodchain.blockscout.com/tx/0x064e4bb64c6588bf04760a4738ffea11fc05959995fd500875b8e06eed9b4f0e) |
 | NVDA | 24 November 2026, 21:55 UTC | `0xA54c…82cd` (ladder rung 1%) | 5 USDG | 0.032589 NVDA | 122,554,411 | [`0x3baaa6ff…affaf5`](https://robinhoodchain.blockscout.com/tx/0x3baaa6ffc69fc174917bfe2fdf70bbccff785753fbbb38357a8252b172affaf5) |
 | NVDA | 25 November 2026, 00:15 UTC | `0xA54c…82cd` (ladder rung 2%) | 5 USDG | 0.032892 NVDA | 122,630,871 | [`0x6e5d6276…fea7af`](https://robinhoodchain.blockscout.com/tx/0x6e5d6276cd5c92ddf7db4d038dffe3093878342e2b891c54533dd10e6efea7af) |
+| NVDA | 25 November 2026, 07:22 UTC | `0xA54c…82cd` (ladder rung 3%) | 5 USDG | 0.033230 NVDA | 122,868,691 | [`0xc341465c…7f383a0`](https://robinhoodchain.blockscout.com/tx/0xc341465cf3a151956db4567d236a202440a2a657dab045b245dc858627f383a0) |
 
 ## Tests
 
