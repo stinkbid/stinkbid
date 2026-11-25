@@ -32,12 +32,15 @@ StinkBid has no owner, no fee, no pause and no upgrade path. Between transaction
 
 ## Mainnet fills
 
-Real stink bids filled by the contract above, 1 USDG each, signed 1% under the pool price. Every fill is also in the public book: `GET https://stinkbid.pro/api/book` (`fills[].fill_tx`).
+Real stink bids filled by the contract above: 5 fills, 22 USDG, 3 maker wallets (2 of them not the team's). The maker signed the bid and received the stock token; the keeper only sent the transaction. Every fill, with its maker, is also in the public book: `GET https://stinkbid.pro/api/book` (`fills[].maker`, `fills[].fill_tx`).
 
-| Stock | Filled | Paid | Received | Block | Transaction |
-|---|---|---|---|---|---|
-| NVDA | 23 November 2026, 02:21 UTC | 1 USDG | 0.007594 NVDA | 121,071,495 | [`0x556b9a19…efa992`](https://robinhoodchain.blockscout.com/tx/0x556b9a19a82bcd480a85b59380ac7811f7106b2c90cc9e2bbaea0180f8efa992) |
-| MSFT | 23 November 2026, 20:55 UTC | 1 USDG | 0.002015 MSFT | 121,705,398 | [`0xcd878551…72e52a`](https://robinhoodchain.blockscout.com/tx/0xcd878551a44ac86ac581c1852734e256adedc21a96ef0500b89dfedd6972e52a) |
+| Stock | Filled | Maker | Paid | Received | Block | Transaction |
+|---|---|---|---|---|---|---|
+| NVDA | 23 November 2026, 02:21 UTC | `0x8fD7…1bAb` (team test) | 1 USDG | 0.007594 NVDA | 121,071,495 | [`0x556b9a19…efa992`](https://robinhoodchain.blockscout.com/tx/0x556b9a19a82bcd480a85b59380ac7811f7106b2c90cc9e2bbaea0180f8efa992) |
+| MSFT | 23 November 2026, 20:55 UTC | `0x8fD7…1bAb` (team test) | 1 USDG | 0.002015 MSFT | 121,705,398 | [`0xcd878551…72e52a`](https://robinhoodchain.blockscout.com/tx/0xcd878551a44ac86ac581c1852734e256adedc21a96ef0500b89dfedd6972e52a) |
+| NVDA | 24 November 2026, 21:44 UTC | `0x5515…8e7a` | 10 USDG | 0.065037 NVDA | 122,548,346 | [`0x064e4bb6…9b4f0e`](https://robinhoodchain.blockscout.com/tx/0x064e4bb64c6588bf04760a4738ffea11fc05959995fd500875b8e06eed9b4f0e) |
+| NVDA | 24 November 2026, 21:55 UTC | `0xA54c…82cd` (ladder rung 1%) | 5 USDG | 0.032589 NVDA | 122,554,411 | [`0x3baaa6ff…affaf5`](https://robinhoodchain.blockscout.com/tx/0x3baaa6ffc69fc174917bfe2fdf70bbccff785753fbbb38357a8252b172affaf5) |
+| NVDA | 25 November 2026, 00:15 UTC | `0xA54c…82cd` (ladder rung 2%) | 5 USDG | 0.032892 NVDA | 122,630,871 | [`0x6e5d6276…fea7af`](https://robinhoodchain.blockscout.com/tx/0x6e5d6276cd5c92ddf7db4d038dffe3093878342e2b891c54533dd10e6efea7af) |
 
 ## Tests
 
