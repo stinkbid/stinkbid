@@ -192,10 +192,12 @@ orders.get("/book", async (c) => {
   c.header("Cache-Control", "public, max-age=15");
   return c.json({
     totals,
-    markets: byMarket.results,
+    // token: the stock token contract, so explorers and research sites can key the bid wall by address
+    markets: (byMarket.results as { symbol: string }[]).map((m) => ({ ...m, token: MARKETS.find((k) => k.symbol === m.symbol)?.token ?? null })),
     fills: fills.results,
     // Every fill tx is sent by this keeper; the tokens go to the fill's maker.
     filler: keeperAddress(c.env),
     known: MARKETS.map((m) => m.symbol),
+    tokens: Object.fromEntries(MARKETS.map((m) => [m.symbol, m.token])),
   });
 });
