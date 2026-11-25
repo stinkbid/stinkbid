@@ -1,3 +1,4 @@
+import { keeperAddress } from "./keeper";
 import { Hono } from "hono";
 import { getAddress, isAddress, isHex, recoverTypedDataAddress, type Address, type Hex } from "viem";
 import {
@@ -170,7 +171,7 @@ orders.get("/orders/open", async (c) => {
   return c.json({ contract: ADDR.stinkbid, orders: results });
 });
 
-/** Aggregates for the public bid wall: no addresses. */
+/** The public bid wall. Fills name the maker (the wallet that signed the bid and got the tokens) and the keeper that sent the tx; both are public on chain in the Filled event. */
 orders.get("/book", async (c) => {
   const db = c.env.DB;
   const [byMarket, fills, totals] = await Promise.all([
@@ -179,14 +180,22 @@ orders.get("/book", async (c) => {
        FROM orders WHERE status = 'open' AND deadline > ?1 GROUP BY symbol ORDER BY usdg DESC`,
     ).bind(now()).all(),
     db.prepare(
-      "SELECT symbol, amount_in, amount_out, depth_bps, fill_tx, closed_at FROM orders WHERE status = 'filled' ORDER BY closed_at DESC LIMIT 10",
+      "SELECT symbol, maker, amount_in, amount_out, depth_bps, fill_tx, closed_at FROM orders WHERE status = 'filled' ORDER BY closed_at DESC LIMIT 10",
     ).all(),
     db.prepare(
       `SELECT SUM(status = 'open' AND deadline > ?1) AS open, SUM(CASE WHEN status = 'open' AND deadline > ?1 THEN CAST(amount_in AS INTEGER) ELSE 0 END) AS usdg_open,
-              SUM(status = 'filled') AS filled, SUM(CASE WHEN status = 'filled' THEN CAST(amount_in AS INTEGER) ELSE 0 END) AS usdg_filled
+              SUM(status = 'filled') AS filled, SUM(CASE WHEN status = 'filled' THEN CAST(amount_in AS INTEGER) ELSE 0 END) AS usdg_filled,
+              COUNT(DISTINCT CASE WHEN status = 'filled' THEN lower(maker) END) AS makers_filled
        FROM orders`,
     ).bind(now()).first(),
   ]);
   c.header("Cache-Control", "public, max-age=15");
-  return c.json({ totals, markets: byMarket.results, fills: fills.results, known: MARKETS.map((m) => m.symbol) });
+  return c.json({
+    totals,
+    markets: byMarket.results,
+    fills: fills.results,
+    // Every fill tx is sent by this keeper; the tokens go to the fill's maker.
+    filler: keeperAddress(c.env),
+    known: MARKETS.map((m) => m.symbol),
+  });
 });
