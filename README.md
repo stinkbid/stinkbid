@@ -65,6 +65,8 @@ Coverage of `StinkBid.sol`: 96% of lines. Slither runs in CI; [contracts/ANALYSI
 
 ## Layout
 
+[ARCHITECTURE.md](ARCHITECTURE.md) has the order flow as a diagram and a table of who holds what.
+
 ```
 contracts/          Foundry: StinkBid.sol, tests, CREATE2 deploy script
 shared/config.ts    addresses, markets, EIP-712 types, order limits (site, API and keeper share it)
