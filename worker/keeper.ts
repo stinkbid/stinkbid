@@ -21,6 +21,16 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const now = () => Math.floor(Date.now() / 1000);
 
+const TIP_WEI = 1_000n;
+
+// Robinhood Chain (Arbitrum Orbit) ignores priority tips, so pay twice the base fee and no meaningful tip.
+// Throws above MAX_FEE_PER_GAS so a gas spike never drains the keeper.
+export function fillFees(baseFeePerGas: bigint | null | undefined): { maxFeePerGas: bigint; maxPriorityFeePerGas: bigint } {
+  const maxFeePerGas = (baseFeePerGas ?? 0n) * 2n + TIP_WEI;
+  if (maxFeePerGas > MAX_FEE_PER_GAS) throw new Error(`gas too high: ${maxFeePerGas}`);
+  return { maxFeePerGas, maxPriorityFeePerGas: TIP_WEI };
+}
+
 export function keeperAddress(env: Env): Address | null {
   const key = env.KEEPER_KEY?.trim();
   if (!key) return null;
@@ -135,11 +145,8 @@ async function pass(env: Env, stats: Stats): Promise<void> {
       try {
         // Simulate first: a fill that would revert costs nothing and is retried next minute.
         await client.simulateContract({ account, address: ADDR.stinkbid, abi: STINKBID_ABI, functionName: "fill", args });
-        // Robinhood Chain (Arbitrum Orbit) ignores priority tips, so pay twice the base fee and no meaningful tip.
-        const base = (await client.getBlock()).baseFeePerGas ?? 0n;
-        const maxFeePerGas = base * 2n + 1_000n;
-        if (maxFeePerGas > MAX_FEE_PER_GAS) throw new Error(`gas too high: ${maxFeePerGas}`);
-        const hash = await wallet.writeContract({ address: ADDR.stinkbid, abi: STINKBID_ABI, functionName: "fill", args, maxFeePerGas, maxPriorityFeePerGas: 1_000n });
+        const fees = fillFees((await client.getBlock()).baseFeePerGas);
+        const hash = await wallet.writeContract({ address: ADDR.stinkbid, abi: STINKBID_ABI, functionName: "fill", args, ...fees });
         const receipt = await client.waitForTransactionReceipt({ hash, timeout: 25_000 });
         if (receipt.status !== "success") throw new Error(`reverted in ${hash}`);
         const log = receipt.logs.find((l) => l.address.toLowerCase() === ADDR.stinkbid.toLowerCase());
