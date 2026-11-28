@@ -125,7 +125,9 @@ function render() {
   const m = market();
   const depth = Number(depthIn.value);
   const n = rungCount();
-  depthOut.textContent = n > 1 ? `−${depth}% to −${Math.min(depth * n, LIMITS.maxDepthBps / 100)}%` : `−${depth}%`;
+  const deepest = Math.min(depth * n, LIMITS.maxDepthBps / 100);
+  depthOut.textContent = n > 1 ? `−${depth}% to −${deepest}%` : `−${depth}%`;
+  depthIn.setAttribute("aria-valuetext", n > 1 ? `${depth}% to ${deepest}% under today's price` : `${depth}% under today's price`);
   const size = sizeUnits();
   const q = state.quote;
   const rungsOk = !!size && size / BigInt(n) >= BigInt(LIMITS.minUsdg) * 10n ** BigInt(USDG_DECIMALS);
@@ -310,7 +312,12 @@ function cond(b: Bid) {
 async function loadBids() {
   if (!state.account) return;
   const r = await get<{ orders: Bid[] }>(`/api/orders?maker=${state.account}`);
-  state.bids = r.ok ? r.data.orders : [];
+  if (!r.ok) {
+    state.bids = [];
+    bidsEl.innerHTML = `<li class="empty">Could not load your bids. Trying again in about a minute.</li>`;
+    return;
+  }
+  state.bids = r.data.orders;
   if (state.bids.length === 0) {
     bidsEl.innerHTML = `<li class="empty">No bids from this wallet yet.</li>`;
     return;
@@ -327,18 +334,21 @@ async function loadBids() {
       <span class="bid-sub">${got}${b.status === "open" ? ` · until ${ends}` : ""}${cond(b)}${note}</span>
       <span class="bid-side"><span class="pill ${b.status}">${b.status}</span></span>`;
     const side = li.querySelector(".bid-side")!;
+    const what = `bid of ${formatUnits(BigInt(b.amount_in), USDG_DECIMALS)} USDG on ${b.symbol} at −${(b.depth_bps / 100).toFixed(0)}%`;
     if (b.fill_tx) {
       const a = document.createElement("a");
       a.href = explorerTx(b.fill_tx);
       a.target = "_blank";
       a.rel = "noopener";
       a.textContent = "Fill tx";
+      a.setAttribute("aria-label", `Fill transaction for ${what}, opens the explorer`);
       side.append(a);
     }
     if (b.status === "open") {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.textContent = "Cancel";
+      btn.setAttribute("aria-label", `Cancel ${what}`);
       btn.addEventListener("click", () => guard(() => cancelBid(b)));
       side.append(btn);
     }

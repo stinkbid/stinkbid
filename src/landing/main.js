@@ -111,6 +111,7 @@ function wireSimulator(stage) {
   function renderBid() {
     const v = Number(bid.value);
     bidOut.textContent = `−${v}%`;
+    bid.setAttribute("aria-valuetext", `${v}% under the price`);
     tag.textContent = `Bid −${v}%`;
     blade.style.top = `${toTop(v)}%`;
     stage.style.setProperty("--glow-y", `${toTop(v)}%`);
@@ -241,7 +242,12 @@ async function loadBook() {
       ? b.fills.map((f) => `<li><span>${f.symbol} · −${Math.round(f.depth_bps / 100)}%</span><span>${usdg(f.amount_in)} USDG · <a href="${EXPLORER}/tx/${f.fill_tx}" target="_blank" rel="noopener">tx</a></span></li>`).join("")
       : `<li class="empty">No fills yet.</li>`;
   } catch {
-    set("b-open", "–");
+    for (const id of ["b-open", "b-usdg", "b-filled", "b-usdg-filled"]) set(id, "–");
+    const failed = `<li class="empty">Could not load the book. Trying again in 30 seconds.</li>`;
+    for (const id of ["b-markets", "b-fills"]) {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = failed;
+    }
   }
 }
 if (document.getElementById("b-open")) {
